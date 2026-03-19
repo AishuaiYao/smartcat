@@ -1,0 +1,23 @@
+<view class="container">
+  <!-- 标题 -->
+  <view class="title">机器人搜索系统</view>
+  
+  <!-- 搜索按钮 -->
+  <button class="search-btn" bindtap="searchRobots">
+    开始搜索机器人
+  </button>
+  
+  <!-- 搜索状态 -->
+  <view class="status" wx:if="{{searching}}">
+    <text>正在搜索中...</text>
+  </view>
+  
+  <!-- 机器人列表 -->
+  <view class="robot-list" wx:if="{{robotList.length > 0}}">
+    <text class="list-title">找到的机器人 ({{robotList.length}}个):</text>
+    <view class="robot-item" wx:for="{{robotList}}" wx:key="id">
+      <text class="robot-name">{{item.name}}</text>
+      <text class="robot-status">{{item.status}}</text>
+    </view>
+  </view>
+</view>
