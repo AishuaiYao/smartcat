@@ -1,23 +1,48 @@
 <view class="container">
-  <!-- 标题 -->
-  <view class="title">机器人搜索系统</view>
-  
-  <!-- 搜索按钮 -->
-  <button class="search-btn" bindtap="searchRobots">
-    开始搜索机器人
-  </button>
-  
-  <!-- 搜索状态 -->
-  <view class="status" wx:if="{{searching}}">
-    <text>正在搜索中...</text>
+  <view class="title">ESP32 摄像头</view>
+
+  <!-- 连接状态 -->
+  <view class="status-bar {{connected ? 'connected' : 'disconnected'}}">
+    <text>{{connected ? '已连接 ESP32' : '未连接'}}</text>
   </view>
-  
-  <!-- 机器人列表 -->
-  <view class="robot-list" wx:if="{{robotList.length > 0}}">
-    <text class="list-title">找到的机器人 ({{robotList.length}}个):</text>
-    <view class="robot-item" wx:for="{{robotList}}" wx:key="id">
-      <text class="robot-name">{{item.name}}</text>
-      <text class="robot-status">{{item.status}}</text>
-    </view>
+
+  <!-- 连接按钮 -->
+  <button class="btn {{connected ? 'btn-disconnect' : 'btn-connect'}}" 
+          bindtap="{{connected ? 'disconnect' : 'connectESP32'}}">
+    {{connected ? '断开连接' : '连接 ESP32'}}
+  </button>
+
+  <!-- 拍照按钮 -->
+  <button class="btn btn-capture" 
+          bindtap="captureImage" 
+          disabled="{{!connected || capturing}}">
+    {{capturing ? '采集中...' : '拍照'}}
+  </button>
+
+  <!-- 当前拍摄图片预览 -->
+  <view class="preview-section" wx:if="{{imageData}}">
+    <text class="section-title">当前拍摄</text>
+    <image class="preview-image" src="{{imageData}}" mode="widthFix"></image>
+  </view>
+
+  <!-- 本地图片统计 -->
+  <view class="stats-bar" bindtap="goToAlbum">
+    <text>本地已保存 {{imageCount}} 张图片</text>
+    <text class="arrow">→</text>
+  </view>
+
+  <!-- 跳转相册按钮 -->
+  <button class="btn btn-album" bindtap="goToAlbum">
+    打开相册
+  </button>
+
+  <!-- 使用提示 -->
+  <view class="tips">
+    <text class="tips-title">使用说明：</text>
+    <text>1. 手机连接WiFi: ESP32-CAM (密码: 12345678)</text>
+    <text>2. 点击"连接 ESP32"</text>
+    <text>3. 点击"拍照"采集图像</text>
+    <text>4. 图片自动保存到本地</text>
+    <text>5. 切换WiFi后去相册上传</text>
   </view>
 </view>

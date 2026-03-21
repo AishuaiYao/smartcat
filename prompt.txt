@@ -1,3 +1,235 @@
-帮我写个微信小程序代码示例，要求使用 JS/TS + WXML/WXSS进行开发。
-先写一个主界面，安排一个按钮，点击按钮后，开始搜索机器人
-要求代码简洁准确，不使用错误捕捉。
+这是我的微信小程序代码，请你仔细阅读然后和我讨论问题或者是完成需求。
+背景:
+我的C++代码在"E:\AICleanBot\main\app_main.cpp"
+我的思路是
+1 先连接家里的wifi打开小程序 
+2 esp32开机作为ap建立wifi 
+3 手机切换连接到esp32的wifi 
+4 手机点击小程序的搜索按键与esp32建立连接 
+5 建立连接之后点击拍照键进行数据采集 
+6 采集完毕后切换回家里的wifi发送数据到数据库
+
+要求：
+· 使用 JS/TS + WXML/WXSS进行开发。
+· 在实施优化代码之前请先跟我理清我的需求并告诉我你的方案，只有征得我的同意之后才去执行代码优化。
+· 你和我的交流要简洁准确不啰嗦。
+· 生成的代码也要简洁准确不冗余。
+· 不能使用错误捕捉逻辑，在当前阶段我们需要让所有错误暴露出来。
+需求：
+我的手机在转换连接到esp32的wifi之后，点击搜索esp32小程序会真的去搜索吗？
+
+
+
+
+
+
+
+
+
+
+
+
+小程序报错：小程序］17:41:21 创建UDP Socket..
+［小程序］ 17:41:21 UDP Socket 开始监听［小程序］ 17:41:21 UDP Socket 绑定完成
+pages/index/index: onShow have been invoked
+Invoke event onReady in page: pages/index/index pages/index/index: onReady have been invoked
+pages/index/index: onRouteDone have been invoked
+[Event] 21 listeners of event WindowInfoChanged have been added, possibly causing memory leak.
+［小程序］17:41:23 开始搜索设备⋯
+［小程序］17:41:23 发送UDP广播："DISCOVER_ESP32"到
+255.255.255.255:12345
+［小程序］17:41:23 UDP Socket 错误：
+{"errCode":-2,"errNum": 65,"errMsg":"send socket fail: errno:65
+errmsg:No route to host"}
+［小程序］17:41:26搜索超时，停止搜索。
+
+
+esp32的日志：PS E:\AICleanBot>  & 'E:\aishuai\Espressif\python_env\idf5.3_py3.11_env\Scripts\python.exe' 'E:\aishuai\Espressif\frameworks\esp-idf-v5.3.1\tools\idf_monitor.py' -p COM8 -b 115200 --toolchain-prefix xtensa-esp32s3-elf- --make '''E:\aishuai\Espressif\python_env\idf5.3_py3.11_env\Scripts\python.exe'' ''E:\aishuai\Espressif\frameworks\esp-idf-v5.3.1\tools\idf.py''' --target esp32s3 'e:\AICleanBot\build\model_in_flash_rodata.elf'
+--- Warning: GDB cannot open serial ports accessed as COMx
+--- Using \\.\COM8 instead...
+--- esp-idf-monitor 1.5.0 on \\.\COM8 115200
+--- Quit: Ctrl+] | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x1918
+load:0x403c8700,len:0x4
+load:0x403c8704,len:0xe5c
+load:0x403cb700,len:0x303c
+entry 0x403c893c
+I (27) boot: ESP-IDF v5.3.1-dirty 2nd stage bootloader
+I (27) boot: compile time Mar 21 2026 17:12:24
+I (27) boot: Multicore bootloader
+I (30) boot: chip revision: v0.2
+I (34) qio_mode: Enabling default flash chip QIO
+I (39) boot.esp32s3: Boot SPI Speed : 80MHz
+I (44) boot.esp32s3: SPI Mode       : QIO
+I (49) boot.esp32s3: SPI Flash Size : 8MB
+I (54) boot: Enabling RNG early entropy source...
+I (59) boot: Partition Table:
+I (63) boot: ## Label            Usage          Type ST Offset   Length
+I (70) boot:  0 nvs              WiFi data        01 02 00010000 00006000
+I (77) boot:  1 factory          factory app      00 00 00020000 0079e000
+I (85) boot: End of partition table
+I (89) esp_image: segment 0: paddr=00020020 vaddr=3c0a0020 size=24994h (149908) map
+I (120) esp_image: segment 1: paddr=000449bc vaddr=3fc9e900 size=0750ch ( 29964) load
+I (126) esp_image: segment 2: paddr=0004bed0 vaddr=40378000 size=04148h ( 16712) load
+I (129) esp_image: segment 3: paddr=00050020 vaddr=42000020 size=90f94h (593812) map
+I (225) esp_image: segment 4: paddr=000e0fbc vaddr=4037c148 size=127a4h ( 75684) load
+I (249) boot: Loaded app from partition at offset 0x20000
+I (249) boot: Disabling RNG early entropy source...
+I (261) octal_psram: vendor id    : 0x0d (AP)
+I (261) octal_psram: dev id       : 0x02 (generation 3)
+I (261) octal_psram: density      : 0x03 (64 Mbit)
+I (266) octal_psram: good-die     : 0x01 (Pass)
+I (272) octal_psram: Latency      : 0x01 (Fixed)
+I (277) octal_psram: VCC          : 0x01 (3V)
+I (282) octal_psram: SRF          : 0x01 (Fast Refresh)
+I (288) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
+I (294) octal_psram: BurstLen     : 0x01 (32 Byte)
+I (299) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
+I (305) octal_psram: DriveStrength: 0x00 (1/1)
+I (311) MSPI Timing: PSRAM timing tuning index: 5
+I (316) esp_psram: Found 8MB PSRAM device
+I (320) esp_psram: Speed: 80MHz
+I (324) cpu_start: Multicore app
+I (613) esp_psram: SPI SRAM memory test OK
+I (622) cpu_start: Pro cpu start user code
+I (622) cpu_start: cpu freq: 240000000 Hz
+I (622) app_init: Application information:
+I (625) app_init: Project name:     model_in_flash_rodata
+I (631) app_init: App version:      9589426-dirty
+I (636) app_init: Compile time:     Mar 21 2026 17:11:17
+I (642) app_init: ELF file SHA256:  9de86b074...
+I (648) app_init: ESP-IDF:          v5.3.1-dirty
+I (653) efuse_init: Min chip rev:     v0.0
+I (658) efuse_init: Max chip rev:     v0.99
+I (663) efuse_init: Chip rev:         v0.2
+I (668) heap_init: Initializing. RAM available for dynamic allocation:
+I (675) heap_init: At 3FCA9B18 len 0003FBF8 (254 KiB): RAM
+I (681) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
+I (687) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
+I (695) spi_flash: detected chip: boya
+I (699) spi_flash: flash io: qio
+W (703) spi_flash: Detected size(16384k) larger than the size in the binary image header(8192k). Using the size in the binary image header.
+W (716) i2c: This driver is an old driver, please migrate your application code to adapt `driver/i2c_master.h`
+I (727) sleep: Configure to isolate all GPIO pins in sleep state
+I (734) sleep: Enable automatic switching of GPIO sleep configuration
+I (741) main_task: Started on CPU0
+I (751) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
+I (751) main_task: Calling app_main()
+I (761) CAM_SRV: ========================================
+I (761) CAM_SRV: ESP32-S3 Camera Server (Station Mode)
+I (771) CAM_SRV: ========================================
+I (781) CAM_SRV: [系统] 初始化NVS存储...
+I (791) CAM_SRV: [系统] NVV初始化成功
+I (791) CAM_SRV: [WiFi] 初始化网络接口...
+I (791) CAM_SRV: [WiFi] 初始化WiFi驱动...
+I (801) pp: pp rom version: e7ae62f
+I (801) net80211: net80211 rom version: e7ae62f
+I (821) wifi:wifi driver task: 3fcbb70c, prio:23, stack:6656, core=0
+I (821) wifi:wifi firmware version: ccaebfa
+I (821) wifi:wifi certification version: v7.0
+I (821) wifi:config NVS flash: enabled
+I (821) wifi:config nano formating: disabled
+I (831) wifi:Init data frame dynamic rx buffer num: 32
+I (831) wifi:Init static rx mgmt buffer num: 5
+I (841) wifi:Init management short buffer num: 32
+I (841) wifi:Init static tx buffer num: 16
+I (851) wifi:Init tx cache buffer num: 32
+I (851) wifi:Init static tx FG buffer num: 2
+I (851) wifi:Init static rx buffer size: 1600
+I (861) wifi:Init static rx buffer num: 10
+I (861) wifi:Init dynamic rx buffer num: 32
+I (871) wifi_init: rx ba win: 6
+I (871) wifi_init: accept mbox: 6
+I (871) wifi_init: tcpip mbox: 32
+I (881) wifi_init: udp mbox: 6
+I (881) wifi_init: tcp mbox: 6
+I (881) wifi_init: tcp tx win: 5760
+I (891) wifi_init: tcp rx win: 5760
+I (891) wifi_init: tcp mss: 1440
+I (901) wifi_init: WiFi IRAM OP enabled
+I (901) wifi_init: WiFi RX IRAM OP enabled
+I (911) CAM_SRV: [WiFi] 目标SSID: CMCC-huahua
+W (911) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2
+I (921) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10
+W (971) phy_init: saving new calibration data because of checksum failure, mode(0)
+I (981) wifi:mode : sta (3c:0f:02:d7:57:00)
+I (981) wifi:enable tsf
+I (981) CAM_SRV: [WiFi] WiFi启动完成，等待连接...
+I (981) CAM_SRV: [WiFi] STA启动，开始连接...
+I (991) CAM_SRV: [Camera] 初始化摄像头...
+I (1001) s3 ll_cam: DMA Channel=0
+I (1001) wifi:new:<5,0>, old:<1,0>, ap:<255,255>, sta:<5,0>, prof:1, snd_ch_cfg:0x0
+I (1011) wifi:state: init -> auth (0xb0)
+I (1011) cam_hal: cam init ok
+I (1011) sccb: pin_sda 4 pin_scl 5
+I (1021) sccb: sccb_i2c_port=1
+I (1031) camera: Camera PID=0x26 VER=0x42 MIDL=0x7f MIDH=0xa2
+I (1031) camera: Detected OV2640 camera
+I (1031) camera: Detected camera at address=0x30
+I (1091) wifi:state: auth -> assoc (0x0)
+I (1111) cam_hal: PSRAM DMA mode disabled
+I (1111) s3 ll_cam: node_size: 3840, nodes_per_line: 1, lines_per_node: 12
+I (1111) s3 ll_cam: dma_half_buffer_min:  3840, dma_half_buffer:  7680, lines_per_half_buffer: 24, dma_buffer_size: 30720
+I (1121) wifi:state: assoc -> run (0x10)
+I (1131) cam_hal: buffer_size: 30720, half_buffer_size: 7680, node_buffer_size: 3840, node_cnt: 8, total_cnt: 5
+I (1141) cam_hal: Allocating 19200 Byte frame buffer in PSRAM
+I (1151) cam_hal: cam config ok
+I (1151) ov2640: Set PLL: clk_2x: 1, clk_div: 3, pclk_auto: 1, pclk_div: 8
+I (1221) CAM_SRV: Camera initialized (QQVGA GRAYSCALE)
+I (1221) CAM_SRV: [Camera] 摄像头初始化成功 (QQVGA 160x120 灰度)
+I (1231) CAM_SRV: [系统] 启动UDP发现服务...
+I (1231) CAM_SRV: [UDP] 创建UDP Socket...
+I (1241) CAM_SRV: [UDP] Socket创建成功, fd=54
+I (1241) CAM_SRV: [UDP] 监听端口: 12345 (等待发现请求)
+I (1251) CAM_SRV: [系统] 启动TCP服务器...
+I (1251) CAM_SRV: TCP server listening on port 5000
+I (1261) CAM_SRV: Waiting for client...
+I (1261) wifi:connected with CMCC-huahua, aid = 30, channel 5, BW20, bssid = 9c:f8:b8:ba:67:40
+I (1271) wifi:security: WPA2-PSK, phy: bgn, rssi: -52
+I (1281) wifi:pm start, type: 1
+
+I (1281) wifi:dp: 1, bi: 102400, li: 3, scale listen interval from 307200 us to 307200 us
+I (1291) wifi:set rx beacon pti, rx_bcn_pti: 0, bcn_timeout: 25000, mt_pti: 0, mt_time: 10000
+I (1301) CAM_SRV: ========================================
+I (1301) CAM_SRV: 系统启动完成!
+I (cam_hal: FB-SIZE: 11520 != 19200
+1311) CAM_SRV: ========================================
+I (1321) main_task: Returned from app_main()
+I (1321) wifi:AP's beacon interval = 102400 us, DTIM period = 1
+I (1371) wifi:<ba-add>idx:0 (ifx:0, 9c:f8:b8:ba:67:40), tid:0, ssn:3, winSize:64
+I (2301) esp_netif_handlers: sta ip: 192.168.1.22, mask: 255.255.255.0, gw: 192.168.1.1
+I (2301) CAM_SRV: [WiFi] 连接成功!
+I (2301) CAM_SRV: [WiFi] IP地址: 192.168.1.22
+I (2301) CAM_SRV: [WiFi] 网关: 192.168.1.1
+I (2311) CAM_SRV: [WiFi] 子网掩码: 255.255.255.0
+--- To exit from IDF monitor please use "Ctrl+]". Alternatively, you can use Ctrl+T Ctrl+X to exit.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

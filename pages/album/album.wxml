@@ -1,0 +1,55 @@
+<view class="container">
+  <view class="header">
+    <text class="title">本地相册</text>
+    <text class="count">共 {{images.length}} 张</text>
+  </view>
+
+  <!-- 操作栏 -->
+  <view class="toolbar">
+    <view class="toolbar-left">
+      <text>已选 {{selectedCount}} 张</text>
+    </view>
+    <view class="toolbar-right">
+      <text class="btn-text" bindtap="selectAll">全选</text>
+      <text class="btn-text" bindtap="deselectAll">取消</text>
+    </view>
+  </view>
+
+  <!-- 图片网格 -->
+  <view class="image-grid" wx:if="{{images.length > 0}}">
+    <view class="image-item {{item.selected ? 'selected' : ''}}" 
+          wx:for="{{images}}" wx:key="path"
+          bindtap="toggleSelect" data-index="{{index}}">
+      <image class="image" src="{{item.path}}" mode="aspectFill" 
+             catchtap="previewImage" data-src="{{item.path}}"></image>
+      <view class="checkbox" wx:if="{{item.selected}}">✓</view>
+      <view class="status-tag {{item.uploaded ? 'uploaded' : ''}}">
+        {{item.uploaded ? '已上传' : '待上传'}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{images.length === 0}}">
+    <text>暂无图片</text>
+    <text class="empty-tip">请先去拍照页面采集图像</text>
+  </view>
+
+  <!-- 上传进度 -->
+  <view class="progress-bar" wx:if="{{uploading}}">
+    <view class="progress-fill" style="width: {{uploadProgress}}%"></view>
+    <text class="progress-text">上传中 {{uploadProgress}}%</text>
+  </view>
+
+  <!-- 底部操作按钮 -->
+  <view class="bottom-bar">
+    <button class="btn btn-delete" bindtap="deleteSelected" 
+            disabled="{{selectedCount === 0 || uploading}}">
+      删除选中
+    </button>
+    <button class="btn btn-upload" bindtap="uploadSelected" 
+            disabled="{{selectedCount === 0 || uploading}}">
+      {{uploading ? '上传中...' : '上传到云端'}}
+    </button>
+  </view>
+</view>

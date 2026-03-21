@@ -1,0 +1,178 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 140rpx;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx 40rpx;
+  background-color: white;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.count {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 40rpx;
+  background-color: white;
+  border-top: 1rpx solid #eee;
+}
+
+.toolbar-left {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.toolbar-right {
+  display: flex;
+  gap: 30rpx;
+}
+
+.btn-text {
+  font-size: 26rpx;
+  color: #1890ff;
+}
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 20rpx;
+}
+
+.image-item {
+  width: calc(33.33% - 16rpx);
+  margin: 8rpx;
+  position: relative;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background-color: white;
+}
+
+.image-item.selected {
+  box-shadow: 0 0 0 4rpx #1890ff;
+}
+
+.image {
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.checkbox {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background-color: #1890ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24rpx;
+}
+
+.status-tag {
+  position: absolute;
+  bottom: 8rpx;
+  left: 8rpx;
+  padding: 4rpx 12rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 20rpx;
+  border-radius: 4rpx;
+}
+
+.status-tag.uploaded {
+  background-color: #52c41a;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 40rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty-tip {
+  margin-top: 16rpx;
+  font-size: 24rpx;
+}
+
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60rpx;
+  background-color: #e6f7ff;
+  display: flex;
+  align-items: center;
+}
+
+.progress-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background-color: #1890ff;
+  transition: width 0.3s;
+}
+
+.progress-text {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  color: #1890ff;
+  font-size: 24rpx;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  padding: 20rpx 40rpx;
+  background-color: white;
+  box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+  margin: 0 10rpx;
+}
+
+.btn-delete {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.btn-upload {
+  background-color: #1890ff;
+  color: white;
+}
