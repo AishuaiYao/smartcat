@@ -11,7 +11,7 @@ Page({
 
   socket: null,
   esp32IP: '192.168.4.1',
-  esp32Port: 8080,
+  esp32Port: 5000,
   receiveBuffer: null,
   expectedLength: 0,
   receiveOffset: 0,
@@ -59,7 +59,7 @@ Page({
 
     const socket = wx.createTCPSocket()
     if (!socket) {
-      this.log('!!! createTCPSocket 失败，请检查是否支持TCP')
+      this.log('!!! createTCPSocket 失败')
       return
     }
     this.socket = socket
@@ -108,8 +108,7 @@ Page({
 
   // 拍照
   captureImage() {
-    this.log('>>> captureImage 被调用')
-    this.log('    connected=' + this.data.connected + ', capturing=' + this.data.capturing)
+    this.log('>>> captureImage 调用, connected=' + this.data.connected + ', capturing=' + this.data.capturing)
 
     if (!this.data.connected) {
       this.log('!!! 未连接ESP32，无法拍照')
@@ -155,18 +154,17 @@ Page({
     if (!this.receiveBuffer) {
       this.log('    解析帧头...')
       if (bytes.length < 4) {
-        this.log('!!! 数据包不足4字节，无法解析帧头，当前: ' + bytes.length + ' 字节')
+        this.log('!!! 数据包不足4字节，当前: ' + bytes.length + ' 字节')
         return
       }
 
       this.expectedLength = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]
       offset = 4
 
-      this.log('    帧头解析: 预期图像大小 = ' + this.expectedLength + ' 字节')
-      this.log('    预期: 160x120灰度 = 19200 字节')
+      this.log('    帧头: 预期图像=' + this.expectedLength + ' 字节 (预期19200)')
 
       if (this.expectedLength !== 160 * 120) {
-        this.log('!!! 警告: 图像大小 ' + this.expectedLength + ' 与预期 19200 不一致')
+        this.log('!!! 警告: 大小' + this.expectedLength + '与预期19200不一致')
       }
 
       this.receiveBuffer = new Uint8Array(this.expectedLength)
@@ -182,7 +180,7 @@ Page({
     this.chunkCount++
 
     if (this.chunkCount <= 3 || this.chunkCount % 20 === 0) {
-      this.log('    第' + this.chunkCount + '包: 写入' + toWrite + '字节, 累计' + this.receiveOffset + '/' + this.expectedLength)
+      this.log('    第' + this.chunkCount + '包: +' + toWrite + 'B, 累计' + this.receiveOffset + '/' + this.expectedLength)
     }
 
     const progress = Math.floor((this.receiveOffset / this.expectedLength) * 100)
@@ -190,7 +188,7 @@ Page({
 
     // 接收完成
     if (this.receiveOffset >= this.expectedLength) {
-      this.log('<<< 图像接收完成! 共' + this.chunkCount + '个包, ' + this.receiveOffset + '字节')
+      this.log('<<< 图像接收完成! 共' + this.chunkCount + '包, ' + this.receiveOffset + '字节')
       this.processImage(this.receiveBuffer)
       this.receiveBuffer = null
       this.receiveOffset = 0
@@ -201,12 +199,11 @@ Page({
 
   // 灰度图转PNG
   processImage(grayData) {
-    this.log('>>> 开始处理图像数据, 长度=' + grayData.length)
+    this.log('>>> 处理图像, 长度=' + grayData.length)
     const width = 160
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
 
-    this.log('    灰度转RGBA: ' + width + 'x' + height)
     for (let i = 0; i < grayData.length; i++) {
       rgbaData[i * 4] = grayData[i]
       rgbaData[i * 4 + 1] = grayData[i]
@@ -214,30 +211,29 @@ Page({
       rgbaData[i * 4 + 3] = 255
     }
 
-    this.log('    创建离屏Canvas ' + width + 'x' + height)
     const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
     const ctx = canvas.getContext('2d')
     const imgData = ctx.createImageData(width, height)
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
 
-    this.log('    Canvas绘制完成, 开始导出为临时文件')
+    this.log('>>> Canvas绘制完成, 导出临时文件')
     wx.canvasToTempFilePath({
       canvas,
       success: (res) => {
-        this.log('<<< 图像导出成功: ' + res.tempFilePath)
+        this.log('<<< 导出成功: ' + res.tempFilePath)
         this.setData({ imageData: res.tempFilePath })
         this.saveImageToLocal(res.tempFilePath)
       },
       fail: (err) => {
-        this.log('!!! 图像导出失败: ' + JSON.stringify(err))
+        this.log('!!! 导出失败: ' + JSON.stringify(err))
       }
     })
   },
 
   // 保存到本地
   saveImageToLocal(tempFilePath) {
-    this.log('>>> 保存图片到本地: ' + tempFilePath)
+    this.log('>>> 保存图片: ' + tempFilePath)
     wx.saveFile({
       tempFilePath,
       success: (res) => {
@@ -260,7 +256,7 @@ Page({
   },
 
   goToAlbum() {
-    this.log('>>> 跳转相册页面')
+    this.log('>>> 跳转相册')
     wx.navigateTo({ url: '/pages/album/album' })
   }
 })

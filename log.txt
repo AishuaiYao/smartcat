@@ -168,3 +168,15 @@ port
 >>> 开始连接 192.168.4.1:8080
 09:01:20
 | 加载本地图片：0 张
+
+
+
+
+
+
+
+
+｛"errMsg"："connect fail: invalid
+port
+'80'"
+, "errCode": -4, "errno": 1001}
