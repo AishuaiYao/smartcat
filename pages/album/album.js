@@ -6,6 +6,9 @@ Page({
     uploadProgress: 0
   },
 
+  // 上传服务器地址（后续替换为你的服务器）
+  SERVER_URL: 'https://your-server.com/upload',
+
   onLoad() {
     this.loadImages()
   },
@@ -14,7 +17,6 @@ Page({
     this.loadImages()
   },
 
-  // 加载本地图片
   loadImages() {
     const images = wx.getStorageSync('savedImages') || []
     const processedImages = images.map(img => ({
@@ -24,29 +26,24 @@ Page({
     this.setData({ images: processedImages, selectedCount: 0 })
   },
 
-  // 选择/取消选择
   toggleSelect(e) {
     const index = e.currentTarget.dataset.index
     const images = this.data.images
     images[index].selected = !images[index].selected
-    
     const selectedCount = images.filter(img => img.selected).length
     this.setData({ images, selectedCount })
   },
 
-  // 全选
   selectAll() {
     const images = this.data.images.map(img => ({ ...img, selected: true }))
     this.setData({ images, selectedCount: images.length })
   },
 
-  // 取消全选
   deselectAll() {
     const images = this.data.images.map(img => ({ ...img, selected: false }))
     this.setData({ images, selectedCount: 0 })
   },
 
-  // 删除选中
   deleteSelected() {
     if (this.data.selectedCount === 0) {
       wx.showToast({ title: '请先选择图片', icon: 'none' })
@@ -55,11 +52,10 @@ Page({
 
     wx.showModal({
       title: '确认删除',
-      content: `确定删除 ${this.data.selectedCount} 张图片？`,
+      content: '确定删除 ' + this.data.selectedCount + ' 张图片？',
       success: (res) => {
         if (res.confirm) {
           let images = this.data.images.filter(img => !img.selected)
-          // 移除selected属性后保存
           const storageImages = images.map(({ selected, ...rest }) => rest)
           wx.setStorageSync('savedImages', storageImages)
           this.setData({ images, selectedCount: 0 })
@@ -69,31 +65,26 @@ Page({
     })
   },
 
-  // 上传到云开发
-  async uploadSelected() {
+  uploadSelected() {
     if (this.data.selectedCount === 0) {
       wx.showToast({ title: '请先选择图片', icon: 'none' })
       return
     }
 
     const selectedImages = this.data.images.filter(img => img.selected)
-    
     this.setData({ uploading: true, uploadProgress: 0 })
-    
+
     let successCount = 0
     let failCount = 0
+    let completed = 0
 
-    for (let i = 0; i < selectedImages.length; i++) {
-      const img = selectedImages[i]
-      
-      const cloudPath = `photos/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.png`
-      
-      wx.cloud.uploadFile({
-        cloudPath: cloudPath,
+    selectedImages.forEach((img, i) => {
+      wx.uploadFile({
+        url: this.SERVER_URL,
         filePath: img.path,
+        name: 'file',
         success: () => {
           successCount++
-          // 更新状态
           const images = this.data.images
           const idx = images.findIndex(item => item.path === img.path)
           if (idx !== -1) {
@@ -102,43 +93,33 @@ Page({
           }
           this.setData({ images })
         },
-        fail: () => {
+        fail: (err) => {
           failCount++
+          console.log('上传失败:', err)
         },
         complete: () => {
-          const progress = Math.round(((i + 1) / selectedImages.length) * 100)
+          completed++
+          const progress = Math.round((completed / selectedImages.length) * 100)
           this.setData({ uploadProgress: progress })
+
+          if (completed === selectedImages.length) {
+            const storageImages = this.data.images.map(({ selected, ...rest }) => rest)
+            wx.setStorageSync('savedImages', storageImages)
+            this.setData({ uploading: false, uploadProgress: 0, selectedCount: 0 })
+            wx.showModal({
+              title: '上传完成',
+              content: '成功: ' + successCount + ' 张\n失败: ' + failCount + ' 张',
+              showCancel: false
+            })
+          }
         }
       })
-      
-      // 等待上传完成
-      await new Promise(resolve => setTimeout(resolve, 500))
-    }
-
-    // 保存状态
-    const storageImages = this.data.images.map(({ selected, ...rest }) => rest)
-    wx.setStorageSync('savedImages', storageImages)
-
-    this.setData({ 
-      uploading: false, 
-      uploadProgress: 0,
-      selectedCount: 0
-    })
-
-    wx.showModal({
-      title: '上传完成',
-      content: `成功: ${successCount} 张\n失败: ${failCount} 张`,
-      showCancel: false
     })
   },
 
-  // 预览图片
   previewImage(e) {
     const src = e.currentTarget.dataset.src
     const urls = this.data.images.map(img => img.path)
-    wx.previewImage({
-      current: src,
-      urls: urls
-    })
+    wx.previewImage({ current: src, urls })
   }
 })

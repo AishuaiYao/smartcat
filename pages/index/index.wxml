@@ -6,20 +6,25 @@
     <text>{{connected ? '已连接 ESP32' : '未连接'}}</text>
   </view>
 
-  <!-- 连接按钮 -->
-  <button class="btn {{connected ? 'btn-disconnect' : 'btn-connect'}}" 
-          bindtap="{{connected ? 'disconnect' : 'connectESP32'}}">
+  <!-- 连接/断开按钮 -->
+  <button class="btn {{connected ? 'btn-disconnect' : 'btn-connect'}}"
+          bindtap="connectESP32">
     {{connected ? '断开连接' : '连接 ESP32'}}
   </button>
 
   <!-- 拍照按钮 -->
-  <button class="btn btn-capture" 
-          bindtap="captureImage" 
+  <button class="btn btn-capture"
+          bindtap="captureImage"
           disabled="{{!connected || capturing}}">
-    {{capturing ? '采集中...' : '拍照'}}
+    {{capturing ? '采集中 ' + progress + '%' : '拍照'}}
   </button>
 
-  <!-- 当前拍摄图片预览 -->
+  <!-- 进度条 -->
+  <view class="progress-bar" wx:if="{{capturing}}">
+    <view class="progress-fill" style="width: {{progress}}%"></view>
+  </view>
+
+  <!-- 当前拍摄预览 -->
   <view class="preview-section" wx:if="{{imageData}}">
     <text class="section-title">当前拍摄</text>
     <image class="preview-image" src="{{imageData}}" mode="widthFix"></image>
@@ -31,7 +36,7 @@
     <text class="arrow">→</text>
   </view>
 
-  <!-- 跳转相册按钮 -->
+  <!-- 跳转相册 -->
   <button class="btn btn-album" bindtap="goToAlbum">
     打开相册
   </button>
@@ -39,10 +44,19 @@
   <!-- 使用提示 -->
   <view class="tips">
     <text class="tips-title">使用说明：</text>
-    <text>1. 手机连接WiFi: ESP32-CAM (密码: 12345678)</text>
-    <text>2. 点击"连接 ESP32"</text>
-    <text>3. 点击"拍照"采集图像</text>
+    <text>1. 手机WiFi切换至 "ESP32-CAM"</text>
+    <text>2. 点击"连接 ESP32"测试通信</text>
+    <text>3. 连接后点击"拍照"采集图像</text>
     <text>4. 图片自动保存到本地</text>
-    <text>5. 切换WiFi后去相册上传</text>
+    <text>5. 切回家里WiFi后去相册上传</text>
+  </view>
+
+  <!-- 调试日志 -->
+  <view class="log-panel">
+    <text class="log-title">调试日志 ({{logMsgs.length}})</text>
+    <scroll-view class="log-scroll" scroll-y scroll-into-view="log-top">
+      <text id="log-top"></text>
+      <text class="log-line" wx:for="{{logMsgs}}" wx:key="index">{{item}}</text>
+    </scroll-view>
   </view>
 </view>

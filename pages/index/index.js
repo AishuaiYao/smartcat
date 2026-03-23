@@ -4,193 +4,263 @@ Page({
     capturing: false,
     imageData: null,
     savedImages: [],
-    imageCount: 0
+    imageCount: 0,
+    progress: 0,
+    logMsgs: []
   },
 
-  tcpSocket: null,
+  socket: null,
+  esp32IP: '192.168.4.1',
+  esp32Port: 8080,
+  receiveBuffer: null,
+  expectedLength: 0,
+  receiveOffset: 0,
+  chunkCount: 0,
 
   log(msg) {
-    console.log(`[小程序] ${new Date().toLocaleTimeString()} ${msg}`)
+    const time = new Date().toLocaleTimeString()
+    console.log('[小程序] ' + time + ' ' + msg)
+    const msgs = this.data.logMsgs
+    msgs.unshift(time + ' | ' + msg)
+    if (msgs.length > 50) msgs.pop()
+    this.setData({ logMsgs: msgs })
   },
 
   onLoad() {
-    this.log('拍照页面加载')
+    this.log('页面加载')
     this.loadSavedImages()
   },
 
   onShow() {
+    this.log('页面显示')
     this.loadSavedImages()
   },
 
   onUnload() {
-    if (this.tcpSocket) this.tcpSocket.close()
+    this.log('页面卸载')
+    this.disconnect()
   },
 
-  // 加载已保存的图片列表
   loadSavedImages() {
     const images = wx.getStorageSync('savedImages') || []
+    this.log('加载本地图片: ' + images.length + ' 张')
     this.setData({ savedImages: images, imageCount: images.length })
-    this.log(`已加载 ${images.length} 张本地图片`)
   },
 
-  // 连接ESP32
+  // TCP连接ESP32
   connectESP32() {
-    const ip = '192.168.4.1'
-    this.log(`开始连接ESP32: ${ip}:5000`)
-    
-    if (this.tcpSocket) {
-      this.tcpSocket.close()
+    if (this.data.connected) {
+      this.log('主动断开连接')
+      this.disconnect()
+      return
     }
-    
-    this.tcpSocket = wx.createTCPSocket()
-    
-    this.tcpSocket.onConnect(() => {
-      this.log('TCP连接成功!')
+
+    this.log('>>> 开始连接 ' + this.esp32IP + ':' + this.esp32Port)
+
+    const socket = wx.createTCPSocket()
+    if (!socket) {
+      this.log('!!! createTCPSocket 失败，请检查是否支持TCP')
+      return
+    }
+    this.socket = socket
+    this.log('TCPSocket 创建成功')
+
+    socket.onConnect(() => {
+      this.log('<<< TCP连接成功')
       this.setData({ connected: true })
       wx.showToast({ title: '连接成功', icon: 'success' })
     })
 
-    this.tcpSocket.onMessage(this.onTcpMessage.bind(this))
-    
-    this.tcpSocket.onError((err) => {
-      this.log(`TCP错误: ${JSON.stringify(err)}`)
-      this.setData({ connected: false })
+    socket.onMessage((res) => {
+      const bytes = new Uint8Array(res.message)
+      this.log('<<< 收到数据包: ' + bytes.length + ' 字节')
+      this.onReceiveData(res.message)
+    })
+
+    socket.onClose(() => {
+      this.log('<<< 连接已关闭')
+      this.setData({ connected: false, capturing: false })
+      this.socket = null
+    })
+
+    socket.onError((err) => {
+      this.log('!!! 连接错误: ' + JSON.stringify(err))
+      this.setData({ connected: false, capturing: false })
+      this.socket = null
       wx.showToast({ title: '连接失败', icon: 'none' })
     })
 
-    this.tcpSocket.onClose(() => {
-      this.log('TCP连接关闭')
-      this.setData({ connected: false })
+    this.log('>>> 发起TCP连接请求...')
+    socket.connect({
+      address: this.esp32IP,
+      port: this.esp32Port
     })
-
-    this.tcpSocket.connect({ address: ip, port: 5000 })
   },
 
-  // 断开连接
   disconnect() {
-    if (this.tcpSocket) {
-      this.tcpSocket.close()
-      this.tcpSocket = null
+    if (this.socket) {
+      this.log('关闭Socket')
+      this.socket.close()
+      this.socket = null
     }
-    this.setData({ connected: false })
-    this.log('已断开连接')
+    this.setData({ connected: false, capturing: false })
   },
 
-  // TCP消息处理
-  receiveBuffer: null,
-  expectedLength: 0,
+  // 拍照
+  captureImage() {
+    this.log('>>> captureImage 被调用')
+    this.log('    connected=' + this.data.connected + ', capturing=' + this.data.capturing)
 
-  onTcpMessage(res) {
-    const data = new Uint8Array(res.message)
-    this.log(`收到数据: ${data.length} 字节`)
-    
-    if (!this.receiveBuffer) {
-      // 读取帧头（4字节大端长度）
-      this.expectedLength = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]
-      this.log(`图像大小: ${this.expectedLength} 字节`)
-      this.receiveBuffer = data.slice(4)
-    } else {
-      const temp = new Uint8Array(this.receiveBuffer.length + data.length)
-      temp.set(this.receiveBuffer)
-      temp.set(data, this.receiveBuffer.length)
-      this.receiveBuffer = temp
+    if (!this.data.connected) {
+      this.log('!!! 未连接ESP32，无法拍照')
+      wx.showToast({ title: '请先连接ESP32', icon: 'none' })
+      return
     }
 
-    // 数据接收完成
-    if (this.receiveBuffer.length >= this.expectedLength) {
-      this.log('图像接收完成，开始处理...')
-      this.processImage(this.receiveBuffer.slice(0, this.expectedLength))
-      this.receiveBuffer = null
-      this.expectedLength = 0
+    if (this.data.capturing) {
+      this.log('!!! 正在采集中，请等待')
+      return
+    }
+
+    this.setData({ capturing: true, progress: 0 })
+    this.receiveBuffer = null
+    this.receiveOffset = 0
+    this.expectedLength = 0
+    this.chunkCount = 0
+
+    const cmd = 'CAPTURE\n'
+    this.log('>>> 发送CAPTURE命令, ' + cmd.length + ' 字节')
+
+    const buffer = new ArrayBuffer(cmd.length)
+    const view = new Uint8Array(buffer)
+    for (let i = 0; i < cmd.length; i++) {
+      view[i] = cmd.charCodeAt(i)
+    }
+
+    try {
+      this.socket.write(buffer)
+      this.log('>>> CAPTURE命令已发出')
+    } catch (e) {
+      this.log('!!! 发送命令异常: ' + JSON.stringify(e))
       this.setData({ capturing: false })
     }
   },
 
-  // 处理图像数据（灰度图转Canvas）
+  // 接收TCP数据
+  onReceiveData(data) {
+    const bytes = new Uint8Array(data)
+    let offset = 0
+
+    // 读取帧头（4字节大端长度）
+    if (!this.receiveBuffer) {
+      this.log('    解析帧头...')
+      if (bytes.length < 4) {
+        this.log('!!! 数据包不足4字节，无法解析帧头，当前: ' + bytes.length + ' 字节')
+        return
+      }
+
+      this.expectedLength = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]
+      offset = 4
+
+      this.log('    帧头解析: 预期图像大小 = ' + this.expectedLength + ' 字节')
+      this.log('    预期: 160x120灰度 = 19200 字节')
+
+      if (this.expectedLength !== 160 * 120) {
+        this.log('!!! 警告: 图像大小 ' + this.expectedLength + ' 与预期 19200 不一致')
+      }
+
+      this.receiveBuffer = new Uint8Array(this.expectedLength)
+      this.receiveOffset = 0
+      this.chunkCount = 0
+    }
+
+    // 写入数据到缓冲区
+    const remaining = bytes.length - offset
+    const toWrite = Math.min(remaining, this.expectedLength - this.receiveOffset)
+    this.receiveBuffer.set(bytes.subarray(offset, offset + toWrite), this.receiveOffset)
+    this.receiveOffset += toWrite
+    this.chunkCount++
+
+    if (this.chunkCount <= 3 || this.chunkCount % 20 === 0) {
+      this.log('    第' + this.chunkCount + '包: 写入' + toWrite + '字节, 累计' + this.receiveOffset + '/' + this.expectedLength)
+    }
+
+    const progress = Math.floor((this.receiveOffset / this.expectedLength) * 100)
+    this.setData({ progress })
+
+    // 接收完成
+    if (this.receiveOffset >= this.expectedLength) {
+      this.log('<<< 图像接收完成! 共' + this.chunkCount + '个包, ' + this.receiveOffset + '字节')
+      this.processImage(this.receiveBuffer)
+      this.receiveBuffer = null
+      this.receiveOffset = 0
+      this.chunkCount = 0
+      this.setData({ capturing: false, progress: 0 })
+    }
+  },
+
+  // 灰度图转PNG
   processImage(grayData) {
+    this.log('>>> 开始处理图像数据, 长度=' + grayData.length)
     const width = 160
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
 
+    this.log('    灰度转RGBA: ' + width + 'x' + height)
     for (let i = 0; i < grayData.length; i++) {
-      const gray = grayData[i]
-      rgbaData[i * 4] = gray
-      rgbaData[i * 4 + 1] = gray
-      rgbaData[i * 4 + 2] = gray
+      rgbaData[i * 4] = grayData[i]
+      rgbaData[i * 4 + 1] = grayData[i]
+      rgbaData[i * 4 + 2] = grayData[i]
       rgbaData[i * 4 + 3] = 255
     }
 
-    // 使用Canvas绘制
+    this.log('    创建离屏Canvas ' + width + 'x' + height)
     const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
     const ctx = canvas.getContext('2d')
     const imgData = ctx.createImageData(width, height)
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
 
-    // 转为临时文件
+    this.log('    Canvas绘制完成, 开始导出为临时文件')
     wx.canvasToTempFilePath({
       canvas,
       success: (res) => {
-        this.log(`图像处理成功: ${res.tempFilePath}`)
+        this.log('<<< 图像导出成功: ' + res.tempFilePath)
         this.setData({ imageData: res.tempFilePath })
-        
-        // 保存到本地
         this.saveImageToLocal(res.tempFilePath)
       },
       fail: (err) => {
-        this.log(`图像处理失败: ${JSON.stringify(err)}`)
-        wx.showToast({ title: '处理失败', icon: 'none' })
+        this.log('!!! 图像导出失败: ' + JSON.stringify(err))
       }
     })
   },
 
-  // 保存图片到本地存储
+  // 保存到本地
   saveImageToLocal(tempFilePath) {
-    const fileName = `img_${Date.now()}.png`
-    
+    this.log('>>> 保存图片到本地: ' + tempFilePath)
     wx.saveFile({
-      tempFilePath: tempFilePath,
+      tempFilePath,
       success: (res) => {
-        const savedPath = res.savedFilePath
-        this.log(`图片已保存: ${savedPath}`)
-        
-        // 更新保存列表
+        this.log('<<< 保存成功: ' + res.savedFilePath)
         let images = wx.getStorageSync('savedImages') || []
         images.unshift({
-          path: savedPath,
+          path: res.savedFilePath,
           time: new Date().toLocaleString(),
           uploaded: false
         })
         wx.setStorageSync('savedImages', images)
-        
-        this.setData({ 
-          savedImages: images, 
-          imageCount: images.length 
-        })
-        
-        wx.showToast({ title: '已保存到本地', icon: 'success' })
+        this.log('本地图片总数: ' + images.length)
+        this.setData({ savedImages: images, imageCount: images.length })
+        wx.showToast({ title: '已保存', icon: 'success' })
       },
       fail: (err) => {
-        this.log(`保存失败: ${JSON.stringify(err)}`)
-        wx.showToast({ title: '保存失败', icon: 'none' })
+        this.log('!!! 保存失败: ' + JSON.stringify(err))
       }
     })
   },
 
-  // 采集图像
-  captureImage() {
-    if (!this.data.connected) {
-      wx.showToast({ title: '请先连接ESP32', icon: 'none' })
-      return
-    }
-    
-    this.log('发送采集命令: CAPTURE')
-    this.setData({ capturing: true })
-    this.tcpSocket.send({ message: 'CAPTURE' })
-  },
-
-  // 跳转到相册页面
   goToAlbum() {
+    this.log('>>> 跳转相册页面')
     wx.navigateTo({ url: '/pages/album/album' })
   }
 })
