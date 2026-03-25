@@ -3,8 +3,6 @@ Page({
     connected: false,
     capturing: false,
     imageData: null,
-    savedImages: [],
-    imageCount: 0,
     progress: 0,
     logMsgs: []
   },
@@ -28,23 +26,15 @@ Page({
 
   onLoad() {
     this.log('页面加载')
-    this.loadSavedImages()
   },
 
   onShow() {
     this.log('页面显示')
-    this.loadSavedImages()
   },
 
   onUnload() {
     this.log('页面卸载')
     this.disconnect()
-  },
-
-  loadSavedImages() {
-    const images = wx.getStorageSync('savedImages') || []
-    this.log('加载本地图片: ' + images.length + ' 张')
-    this.setData({ savedImages: images, imageCount: images.length })
   },
 
   // TCP连接ESP32
@@ -161,10 +151,10 @@ Page({
       this.expectedLength = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]
       offset = 4
 
-      this.log('    帧头: 预期图像=' + this.expectedLength + ' 字节 (预期19200)')
+      this.log('    帧头: 预期图像=' + this.expectedLength + ' 字节 (预期38400)')
 
-      if (this.expectedLength !== 160 * 120) {
-        this.log('!!! 警告: 大小' + this.expectedLength + '与预期19200不一致')
+      if (this.expectedLength !== 320 * 120) {
+        this.log('!!! 警告: 大小' + this.expectedLength + '与预期38400不一致')
       }
 
       this.receiveBuffer = new Uint8Array(this.expectedLength)
@@ -197,10 +187,10 @@ Page({
     }
   },
 
-  // 灰度图转PNG
+  // 灰度图转PNG（320x120拼接图：左原图 + 右预测图）
   processImage(grayData) {
     this.log('>>> 处理图像, 长度=' + grayData.length)
-    const width = 160
+    const width = 320   // 拼接图宽度
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
 
@@ -217,13 +207,13 @@ Page({
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
 
-    this.log('>>> Canvas绘制完成, 导出临时文件')
+    this.log('>>> Canvas绘制完成, 尺寸=' + width + 'x' + height + ', 导出临时文件')
     wx.canvasToTempFilePath({
       canvas,
       success: (res) => {
         this.log('<<< 导出成功: ' + res.tempFilePath)
         this.setData({ imageData: res.tempFilePath })
-        this.saveImageToLocal(res.tempFilePath)
+        this.saveImageToAlbum(res.tempFilePath)
       },
       fail: (err) => {
         this.log('!!! 导出失败: ' + JSON.stringify(err))
@@ -231,26 +221,17 @@ Page({
     })
   },
 
-  // 保存到本地
-  saveImageToLocal(tempFilePath) {
-    this.log('>>> 保存图片: ' + tempFilePath)
-    wx.saveFile({
-      tempFilePath,
-      success: (res) => {
-        this.log('<<< 保存成功: ' + res.savedFilePath)
-        let images = wx.getStorageSync('savedImages') || []
-        images.unshift({
-          path: res.savedFilePath,
-          time: new Date().toLocaleString(),
-          uploaded: false
-        })
-        wx.setStorageSync('savedImages', images)
-        this.log('本地图片总数: ' + images.length)
-        this.setData({ savedImages: images, imageCount: images.length })
-        wx.showToast({ title: '已保存', icon: 'success' })
+  // 保存到手机相册
+  saveImageToAlbum(tempFilePath) {
+    this.log('>>> 保存到手机相册: ' + tempFilePath)
+    wx.saveImageToPhotosAlbum({
+      filePath: tempFilePath,
+      success: () => {
+        this.log('<<< 已保存到手机相册')
+        wx.showToast({ title: '已保存到相册', icon: 'success' })
       },
       fail: (err) => {
-        this.log('!!! 保存失败: ' + JSON.stringify(err))
+        this.log('!!! 保存相册失败: ' + JSON.stringify(err))
       }
     })
   },
