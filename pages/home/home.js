@@ -3,6 +3,7 @@ Page({
     devices: [],
     showRadar: false,
     showConfirm: false,
+    showDelete: false,
     radarStatus: '搜索设备中...',
     esp32IP: '192.168.4.1',
     esp32Port: 5000
@@ -93,7 +94,14 @@ Page({
   },
 
   onSettingsTap() {
-    console.log('点击设置')
+    this.setData({ showDelete: !this.data.showDelete })
+  },
+
+  onDeleteDevice(e) {
+    const id = e.currentTarget.dataset.id
+    const devices = this.data.devices.filter(d => d.id !== id)
+    this.setData({ devices, showDelete: false })
+    this.saveDevices()
   },
 
   onTabTap(e) {

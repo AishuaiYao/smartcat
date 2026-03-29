@@ -62,16 +62,40 @@
 .card-grid {
   display: flex;
   flex-wrap: wrap;
-  padding: 20rpx;
-  gap: 20rpx;
+  padding: 24rpx;
+  gap: 24rpx;
 }
 
 .device-card {
-  width: calc(50% - 10rpx);
+  width: calc(50% - 12rpx);
   background: #fff;
   border-radius: 20rpx;
   padding: 30rpx 20rpx;
   text-align: center;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.delete-btn {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 44rpx;
+  height: 44rpx;
+  background: #ff4d4f;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 28rpx;
+  line-height: 44rpx;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.device-card.show-delete .delete-btn {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .card-icon {

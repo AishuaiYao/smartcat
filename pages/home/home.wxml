@@ -14,7 +14,8 @@
   <!-- 设备列表 -->
   <scroll-view class="device-list" scroll-y>
     <view class="card-grid">
-      <view class="device-card" wx:for="{{devices}}" wx:key="id" bindtap="onCardTap" data-id="{{item.id}}">
+      <view class="device-card {{showDelete ? 'show-delete' : ''}}" wx:for="{{devices}}" wx:key="id" bindtap="{{showDelete ? '' : 'onCardTap'}}" data-id="{{item.id}}">
+        <view class="delete-btn" catchtap="onDeleteDevice" data-id="{{item.id}}">➖</view>
         <text class="card-icon">{{item.icon}}</text>
         <text class="card-name">{{item.name}}</text>
         <text class="card-status">{{item.status}}</text>
