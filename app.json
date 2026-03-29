@@ -1,6 +1,9 @@
 {
   "pages": [
     "pages/home/home",
+    "pages/smart/smart",
+    "pages/assistant/assistant",
+    "pages/my/my",
     "pages/index/index",
     "pages/album/album"
   ],

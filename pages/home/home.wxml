@@ -2,36 +2,43 @@
   <!-- 顶部栏 -->
   <view class="header">
     <view class="avatar">🐱</view>
-    <view class="title">常用</view>
     <view class="menu-btn">☰</view>
   </view>
 
-  <!-- 设备卡片网格 -->
-  <view class="card-grid">
-    <block wx:for="{{devices}}" wx:key="id">
-      <view class="device-card" bindtap="onCardTap" data-id="{{item.id}}">
-        <view class="card-icon">{{item.icon}}</view>
-        <view class="card-name">{{item.name}}</view>
-        <view class="card-status">{{item.status}}</view>
-      </view>
-    </block>
-  </view>
+  <!-- 可滚动内容区 -->
+  <scroll-view class="content-scroll" scroll-y>
+    <!-- 常用标题 -->
+    <view class="section-header">
+      <text class="section-title">常用</text>
+    </view>
+
+    <!-- 设备卡片网格 -->
+    <view class="card-grid">
+      <block wx:for="{{devices}}" wx:key="id">
+        <view class="device-card" bindtap="onCardTap" data-id="{{item.id}}">
+          <view class="card-icon">{{item.icon}}</view>
+          <view class="card-name">{{item.name}}</view>
+          <view class="card-status">{{item.status}}</view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
 
   <!-- 底部 TabBar -->
   <view class="tabbar">
-    <view class="tab-item active">
+    <view class="tab-item active" bindtap="onTabTap" data-tab="home">
       <text>🏠</text>
       <text class="tab-label">首页</text>
     </view>
-    <view class="tab-item">
+    <view class="tab-item" bindtap="onTabTap" data-tab="smart">
       <text>🔔</text>
       <text class="tab-label">智能</text>
     </view>
-    <view class="tab-item">
+    <view class="tab-item" bindtap="onTabTap" data-tab="assistant">
       <text>💬</text>
       <text class="tab-label">助手</text>
     </view>
-    <view class="tab-item">
+    <view class="tab-item" bindtap="onTabTap" data-tab="my">
       <text>👤</text>
       <text class="tab-label">我的</text>
     </view>

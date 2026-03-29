@@ -1,14 +1,15 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background-color: #f5f5f5;
-  padding-bottom: 120rpx;
 }
 
 /* 顶部栏 */
 .header {
   display: flex;
   align-items: center;
-  padding: 60rpx 30rpx 20rpx;
+  padding: 80rpx 30rpx 20rpx;
   background-color: #fff;
 }
 
@@ -23,16 +24,32 @@
   justify-content: center;
 }
 
-.title {
-  flex: 1;
-  font-size: 36rpx;
-  font-weight: bold;
-  margin-left: 20rpx;
-}
-
 .menu-btn {
+  margin-left: auto;
   font-size: 40rpx;
   padding: 10rpx 20rpx;
+}
+
+/* 可滚动内容区 */
+.content-scroll {
+  position: fixed;
+  top: 160rpx;
+  left: 0;
+  right: 0;
+  bottom: 100rpx;
+  background-color: #f5f5f5;
+}
+
+/* 常用标题 */
+.section-header {
+  padding: 30rpx 30rpx 20rpx;
+  background-color: #f5f5f5;
+}
+
+.section-title {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #333;
 }
 
 /* 设备卡片网格 */

@@ -90,5 +90,18 @@ Page({
   onCardTap(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: '/pages/index/index' })
+  },
+
+  onTabTap(e) {
+    const tab = e.currentTarget.dataset.tab
+    const pages = {
+      home: '/pages/home/home',
+      smart: '/pages/smart/smart',
+      assistant: '/pages/assistant/assistant',
+      my: '/pages/my/my'
+    }
+    if (pages[tab]) {
+      wx.redirectTo({ url: pages[tab] })
+    }
   }
 })
