@@ -162,22 +162,26 @@
 }
 
 .radar-box {
-  width: 500rpx;
-  height: 500rpx;
+  width: 560rpx;
   background: #1a1a2e;
   border-radius: 30rpx;
+  padding: 60rpx 40rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+}
+
+.radar-area {
   position: relative;
-  overflow: hidden;
+  width: 300rpx;
+  height: 300rpx;
 }
 
 .radar-circle {
   position: absolute;
-  width: 100rpx;
-  height: 100rpx;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   border: 2rpx solid rgba(7,193,96,0.4);
   border-radius: 50%;
   animation: radar-pulse 2s ease-out infinite;
@@ -192,14 +196,18 @@
 }
 
 @keyframes radar-pulse {
-  0% { width: 100rpx; height: 100rpx; opacity: 1; }
-  100% { width: 400rpx; height: 400rpx; opacity: 0; }
+  0% { width: 80rpx; height: 80rpx; opacity: 1; }
+  100% { width: 300rpx; height: 300rpx; opacity: 0; }
 }
 
 .radar-sweep {
   position: absolute;
-  width: 200rpx;
+  top: 50%;
+  left: 50%;
+  width: 150rpx;
   height: 4rpx;
+  margin-left: -2rpx;
+  margin-top: -2rpx;
   background: linear-gradient(90deg, #07c160, transparent);
   transform-origin: left center;
   animation: sweep 1.5s linear infinite;
@@ -210,13 +218,16 @@
   100% { transform: rotate(360deg); }
 }
 
-.radar-icon {
-  font-size: 60rpx;
-  z-index: 1;
+.radar-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 50rpx;
 }
 
 .radar-text {
-  margin-top: 30rpx;
+  margin-top: 40rpx;
   font-size: 28rpx;
   color: #07c160;
 }

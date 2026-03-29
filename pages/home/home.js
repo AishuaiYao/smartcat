@@ -104,6 +104,10 @@ Page({
     this.saveDevices()
   },
 
+  catchTap() {
+    // 阻止事件冒泡
+  },
+
   onTabTap(e) {
     const tab = e.currentTarget.dataset.tab
     const pages = {

@@ -44,15 +44,17 @@
   </view>
 
   <!-- 雷达弹窗 -->
-  <view class="radar-modal {{showRadar ? 'show' : ''}}" bindtap="onRadarClose">
-    <view class="radar-box" catchtap="">
-      <view class="radar-circle"></view>
-      <view class="radar-circle c2"></view>
-      <view class="radar-circle c3"></view>
-      <view class="radar-sweep"></view>
-      <view class="radar-icon">📡</view>
+  <view class="radar-modal {{showRadar ? 'show' : ''}}" catchtap="onRadarClose">
+    <view class="radar-box" catchtap="catchTap">
+      <view class="radar-area">
+        <view class="radar-circle"></view>
+        <view class="radar-circle c2"></view>
+        <view class="radar-circle c3"></view>
+        <view class="radar-sweep"></view>
+        <view class="radar-center">📡</view>
+      </view>
       <text class="radar-text">{{radarStatus}}</text>
-      <view class="ok-btn {{showConfirm ? 'visible' : ''}}" bindtap="onConfirm">✅ 确认</view>
+      <view class="ok-btn {{showConfirm ? 'visible' : ''}}" catchtap="onConfirm">✅ 确认</view>
     </view>
   </view>
 </view>
