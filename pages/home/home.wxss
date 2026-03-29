@@ -1,154 +1,135 @@
-.container {
+.page {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f5f5f5;
+  background: #f5f5f5;
 }
 
-/* 顶部栏 */
-.header {
+.top-bar {
+  padding: 180rpx 30rpx 20rpx;
+  background: #fff;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 80rpx 30rpx 20rpx;
-  background-color: #fff;
 }
 
 .avatar {
   font-size: 48rpx;
   width: 64rpx;
   height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
   background: #e6f7ff;
   border-radius: 50%;
+  display: block;
+}
+
+.add-btn {
+  font-size: 48rpx;
+  width: 64rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  text-align: center;
+  background: #07c160;
+  border-radius: 50%;
+  color: #fff;
+  display: block;
+}
+
+.title-row {
+  padding: 20rpx 30rpx;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
 }
 
-.menu-btn {
-  margin-left: auto;
-  font-size: 40rpx;
-  padding: 10rpx 20rpx;
-}
-
-/* 可滚动内容区 */
-.content-scroll {
-  position: fixed;
-  top: 160rpx;
-  left: 0;
-  right: 0;
-  bottom: 100rpx;
-  background-color: #f5f5f5;
-}
-
-/* 常用标题 */
-.section-header {
-  padding: 30rpx 30rpx 20rpx;
-  background-color: #f5f5f5;
-}
-
-.section-title {
+.title-left {
   font-size: 44rpx;
   font-weight: bold;
   color: #333;
 }
 
-/* 设备卡片网格 */
+.title-right {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.device-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
 .card-grid {
   display: flex;
   flex-wrap: wrap;
-  padding: 30rpx;
-  gap: 30rpx;
+  padding: 20rpx;
+  gap: 20rpx;
 }
 
 .device-card {
-  width: calc(50% - 15rpx);
+  width: calc(50% - 10rpx);
   background: #fff;
-  border-radius: 24rpx;
-  padding: 40rpx 30rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  border-radius: 20rpx;
+  padding: 30rpx 20rpx;
+  text-align: center;
 }
 
 .card-icon {
-  font-size: 64rpx;
-  margin-bottom: 16rpx;
+  font-size: 56rpx;
+  display: block;
+  margin-bottom: 10rpx;
 }
 
 .card-name {
   font-size: 28rpx;
   font-weight: bold;
   color: #333;
-  margin-bottom: 8rpx;
+  display: block;
 }
 
 .card-status {
   font-size: 22rpx;
   color: #999;
+  display: block;
+  margin-top: 6rpx;
 }
 
-/* 底部 TabBar */
-.tabbar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.bottom-bar {
   height: 100rpx;
   background: #fff;
-  display: flex;
   border-top: 1rpx solid #eee;
+  display: flex;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.tab-item {
+.nav-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
+  font-size: 36rpx;
 }
 
-.tab-item.active {
-  color: #07c160;
-}
-
-.tab-label {
+.nav-item text:last-child {
   font-size: 20rpx;
   margin-top: 4rpx;
 }
 
-/* 悬浮加号按钮 */
-.fab {
-  position: fixed;
-  right: 30rpx;
-  top: 160rpx;
-  width: 100rpx;
-  height: 100rpx;
-  background: linear-gradient(135deg, #07c160, #04a855);
-  border-radius: 50%;
-  font-size: 50rpx;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8rpx 30rpx rgba(7, 193, 96, 0.4);
-  z-index: 100;
-}
-
-/* 雷达搜索弹窗 */
+/* 雷达弹窗 */
 .radar-modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s;
-  z-index: 1000;
 }
 
 .radar-modal.show {
@@ -156,104 +137,79 @@
   pointer-events: auto;
 }
 
-.radar-content {
+.radar-box {
+  width: 500rpx;
+  height: 500rpx;
   background: #1a1a2e;
-  border-radius: 32rpx;
-  padding: 60rpx;
+  border-radius: 30rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 500rpx;
-}
-
-/* 雷达动画 */
-.radar-wrapper {
+  justify-content: center;
   position: relative;
-  width: 300rpx;
-  height: 300rpx;
+  overflow: hidden;
 }
 
 .radar-circle {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: 2rpx solid rgba(7, 193, 96, 0.3);
+  width: 100rpx;
+  height: 100rpx;
+  border: 2rpx solid rgba(7,193,96,0.4);
   border-radius: 50%;
-  animation: pulse 3s ease-out infinite;
+  animation: radar-pulse 2s ease-out infinite;
 }
 
 .radar-circle.c2 {
-  animation-delay: 1s;
+  animation-delay: 0.5s;
 }
 
 .radar-circle.c3 {
-  animation-delay: 2s;
+  animation-delay: 1s;
 }
 
-@keyframes pulse {
-  0% {
-    width: 60rpx;
-    height: 60rpx;
-    opacity: 1;
-  }
-  100% {
-    width: 300rpx;
-    height: 300rpx;
-    opacity: 0;
-  }
+@keyframes radar-pulse {
+  0% { width: 100rpx; height: 100rpx; opacity: 1; }
+  100% { width: 400rpx; height: 400rpx; opacity: 0; }
 }
 
 .radar-sweep {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 150rpx;
+  width: 200rpx;
   height: 4rpx;
-  background: linear-gradient(90deg, rgba(7, 193, 96, 0.8), transparent);
+  background: linear-gradient(90deg, #07c160, transparent);
   transform-origin: left center;
-  animation: sweep 2s linear infinite;
+  animation: sweep 1.5s linear infinite;
 }
 
 @keyframes sweep {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.radar-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 48rpx;
+.radar-icon {
+  font-size: 60rpx;
+  z-index: 1;
 }
 
-.radar-status {
-  margin-top: 40rpx;
+.radar-text {
+  margin-top: 30rpx;
   font-size: 28rpx;
   color: #07c160;
 }
 
-/* 确认按钮 */
-.confirm-btn {
-  margin-top: 40rpx;
-  padding: 20rpx 60rpx;
+.ok-btn {
+  margin-top: 30rpx;
+  padding: 16rpx 50rpx;
   background: #07c160;
   color: #fff;
   border-radius: 40rpx;
   font-size: 28rpx;
   opacity: 0;
-  transform: translateY(20rpx);
-  transition: all 0.3s;
   pointer-events: none;
+  transition: opacity 0.3s;
 }
 
-.confirm-btn.show {
+.ok-btn.visible {
   opacity: 1;
-  transform: translateY(0);
   pointer-events: auto;
 }

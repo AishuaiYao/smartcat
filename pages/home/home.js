@@ -92,6 +92,10 @@ Page({
     wx.navigateTo({ url: '/pages/index/index' })
   },
 
+  onSettingsTap() {
+    console.log('点击设置')
+  },
+
   onTabTap(e) {
     const tab = e.currentTarget.dataset.tab
     const pages = {
