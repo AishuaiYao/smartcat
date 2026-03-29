@@ -1,0 +1,242 @@
+.container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 120rpx;
+}
+
+/* 顶部栏 */
+.header {
+  display: flex;
+  align-items: center;
+  padding: 60rpx 30rpx 20rpx;
+  background-color: #fff;
+}
+
+.avatar {
+  font-size: 48rpx;
+  width: 64rpx;
+  height: 64rpx;
+  background: #e6f7ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  flex: 1;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-left: 20rpx;
+}
+
+.menu-btn {
+  font-size: 40rpx;
+  padding: 10rpx 20rpx;
+}
+
+/* 设备卡片网格 */
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 30rpx;
+  gap: 30rpx;
+}
+
+.device-card {
+  width: calc(50% - 15rpx);
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.card-icon {
+  font-size: 64rpx;
+  margin-bottom: 16rpx;
+}
+
+.card-name {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.card-status {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* 底部 TabBar */
+.tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100rpx;
+  background: #fff;
+  display: flex;
+  border-top: 1rpx solid #eee;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.tab-item.active {
+  color: #07c160;
+}
+
+.tab-label {
+  font-size: 20rpx;
+  margin-top: 4rpx;
+}
+
+/* 悬浮加号按钮 */
+.fab {
+  position: fixed;
+  right: 30rpx;
+  top: 160rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #07c160, #04a855);
+  border-radius: 50%;
+  font-size: 50rpx;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 30rpx rgba(7, 193, 96, 0.4);
+  z-index: 100;
+}
+
+/* 雷达搜索弹窗 */
+.radar-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  z-index: 1000;
+}
+
+.radar-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.radar-content {
+  background: #1a1a2e;
+  border-radius: 32rpx;
+  padding: 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 500rpx;
+}
+
+/* 雷达动画 */
+.radar-wrapper {
+  position: relative;
+  width: 300rpx;
+  height: 300rpx;
+}
+
+.radar-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 2rpx solid rgba(7, 193, 96, 0.3);
+  border-radius: 50%;
+  animation: pulse 3s ease-out infinite;
+}
+
+.radar-circle.c2 {
+  animation-delay: 1s;
+}
+
+.radar-circle.c3 {
+  animation-delay: 2s;
+}
+
+@keyframes pulse {
+  0% {
+    width: 60rpx;
+    height: 60rpx;
+    opacity: 1;
+  }
+  100% {
+    width: 300rpx;
+    height: 300rpx;
+    opacity: 0;
+  }
+}
+
+.radar-sweep {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150rpx;
+  height: 4rpx;
+  background: linear-gradient(90deg, rgba(7, 193, 96, 0.8), transparent);
+  transform-origin: left center;
+  animation: sweep 2s linear infinite;
+}
+
+@keyframes sweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.radar-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48rpx;
+}
+
+.radar-status {
+  margin-top: 40rpx;
+  font-size: 28rpx;
+  color: #07c160;
+}
+
+/* 确认按钮 */
+.confirm-btn {
+  margin-top: 40rpx;
+  padding: 20rpx 60rpx;
+  background: #07c160;
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  opacity: 0;
+  transform: translateY(20rpx);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+
+.confirm-btn.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}

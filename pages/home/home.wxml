@@ -1,0 +1,58 @@
+<view class="container">
+  <!-- 顶部栏 -->
+  <view class="header">
+    <view class="avatar">🐱</view>
+    <view class="title">常用</view>
+    <view class="menu-btn">☰</view>
+  </view>
+
+  <!-- 设备卡片网格 -->
+  <view class="card-grid">
+    <block wx:for="{{devices}}" wx:key="id">
+      <view class="device-card" bindtap="onCardTap" data-id="{{item.id}}">
+        <view class="card-icon">{{item.icon}}</view>
+        <view class="card-name">{{item.name}}</view>
+        <view class="card-status">{{item.status}}</view>
+      </view>
+    </block>
+  </view>
+
+  <!-- 底部 TabBar -->
+  <view class="tabbar">
+    <view class="tab-item active">
+      <text>🏠</text>
+      <text class="tab-label">首页</text>
+    </view>
+    <view class="tab-item">
+      <text>🔔</text>
+      <text class="tab-label">智能</text>
+    </view>
+    <view class="tab-item">
+      <text>💬</text>
+      <text class="tab-label">助手</text>
+    </view>
+    <view class="tab-item">
+      <text>👤</text>
+      <text class="tab-label">我的</text>
+    </view>
+  </view>
+
+  <!-- 悬浮加号按钮 -->
+  <view class="fab" bindtap="onFabTap">➕</view>
+
+  <!-- 雷达搜索弹窗 -->
+  <view class="radar-modal {{showRadar ? 'show' : ''}}" bindtap="onRadarClose">
+    <view class="radar-content" catchtap="">
+      <!-- 雷达动画 -->
+      <view class="radar-wrapper">
+        <view class="radar-circle"></view>
+        <view class="radar-circle c2"></view>
+        <view class="radar-circle c3"></view>
+        <view class="radar-sweep"></view>
+        <view class="radar-center">📡</view>
+      </view>
+      <view class="radar-status">{{radarStatus}}</view>
+      <view class="confirm-btn {{showConfirm ? 'show' : ''}}" bindtap="onConfirm">✅ 确认</view>
+    </view>
+  </view>
+</view>
