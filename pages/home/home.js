@@ -8,7 +8,8 @@ Page({
     esp32IP: '192.168.4.1',
     esp32Port: 5000,
     deviceName: '',
-    deviceIcon: ''
+    deviceIcon: '',
+    deviceMac: ''
   },
 
   socket: null,
@@ -41,7 +42,7 @@ Page({
   },
 
   closeRadar() {
-    this.setData({ showRadar: false, showConfirm: false, deviceName: '', deviceIcon: '' })
+    this.setData({ showRadar: false, showConfirm: false, deviceName: '', deviceIcon: '', deviceMac: '' })
     if (this.socket) {
       this.socket.close()
       this.socket = null
@@ -66,7 +67,8 @@ Page({
       const parts = info.split('|')
       const name = parts[0] || '未知设备'
       const icon = parts[1] || '📦'
-      this.setData({ radarStatus: '设备已找到!', showConfirm: true, deviceName: name, deviceIcon: icon })
+      const mac = parts[2] || ''
+      this.setData({ radarStatus: '设备已找到!', showConfirm: true, deviceName: name, deviceIcon: icon, deviceMac: mac })
     })
 
     socket.onClose(() => {
@@ -87,10 +89,17 @@ Page({
   },
 
   onConfirm() {
+    const exists = this.data.devices.find(d => d.mac === this.data.deviceMac)
+    if (exists) {
+      this.setData({ radarStatus: '设备已存在!' })
+      setTimeout(() => this.closeRadar(), 1500)
+      return
+    }
     const newDevice = {
       id: Date.now(),
       name: this.data.deviceName,
       icon: this.data.deviceIcon,
+      mac: this.data.deviceMac,
       status: '在线'
     }
     const devices = [...this.data.devices, newDevice]
