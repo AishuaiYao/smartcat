@@ -6,7 +6,9 @@ Page({
     showDelete: false,
     radarStatus: '搜索设备中...',
     esp32IP: '192.168.4.1',
-    esp32Port: 5000
+    esp32Port: 5000,
+    deviceName: '',
+    deviceIcon: ''
   },
 
   socket: null,
@@ -39,7 +41,7 @@ Page({
   },
 
   closeRadar() {
-    this.setData({ showRadar: false, showConfirm: false })
+    this.setData({ showRadar: false, showConfirm: false, deviceName: '', deviceIcon: '' })
     if (this.socket) {
       this.socket.close()
       this.socket = null
@@ -55,7 +57,16 @@ Page({
     this.socket = socket
 
     socket.onConnect(() => {
-      this.setData({ radarStatus: '设备已找到!', showConfirm: true })
+      this.setData({ radarStatus: '握手ing...' })
+      socket.write('HELLO\n')
+    })
+
+    socket.onMessage(res => {
+      const info = String.fromCharCode(...new Uint8Array(res.message)).trim()
+      const parts = info.split('|')
+      const name = parts[0] || '未知设备'
+      const icon = parts[1] || '📦'
+      this.setData({ radarStatus: '设备已找到!', showConfirm: true, deviceName: name, deviceIcon: icon })
     })
 
     socket.onClose(() => {
@@ -78,8 +89,8 @@ Page({
   onConfirm() {
     const newDevice = {
       id: Date.now(),
-      name: 'ESP32-CAM',
-      icon: '📷',
+      name: this.data.deviceName,
+      icon: this.data.deviceIcon,
       status: '在线'
     }
     const devices = [...this.data.devices, newDevice]
