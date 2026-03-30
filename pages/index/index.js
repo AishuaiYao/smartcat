@@ -1,6 +1,8 @@
 Page({
   data: {
     connected: false,
+    connecting: true,
+    deviceName: '',
     capturing: false,
     imageData: null,
     savedImages: [],
@@ -26,9 +28,11 @@ Page({
     this.setData({ logMsgs: msgs })
   },
 
-  onLoad() {
-    this.log('页面加载')
+  onLoad(options) {
+    this.setData({ deviceName: options.name || '未知设备' })
+    this.log('页面加载: ' + this.data.deviceName)
     this.loadSavedImages()
+    this.connectDevice()
   },
 
   onShow() {
@@ -47,19 +51,14 @@ Page({
     this.setData({ savedImages: images, imageCount: images.length })
   },
 
-  // TCP连接ESP32
-  connectESP32() {
-    if (this.data.connected) {
-      this.log('主动断开连接')
-      this.disconnect()
-      return
-    }
-
+  connectDevice() {
     this.log('>>> 开始连接 ' + this.esp32IP + ':' + this.esp32Port)
 
     const socket = wx.createTCPSocket()
     if (!socket) {
       this.log('!!! createTCPSocket 失败')
+      this.setData({ connecting: false })
+      wx.showModal({ title: '连接失败', content: '无法创建Socket', showCancel: false, complete: () => wx.navigateBack() })
       return
     }
     this.socket = socket
@@ -67,12 +66,17 @@ Page({
 
     socket.onConnect(() => {
       this.log('<<< TCP连接成功')
-      this.setData({ connected: true })
-      wx.showToast({ title: '连接成功', icon: 'success' })
+      socket.write('HELLO\n')
     })
 
     socket.onMessage((res) => {
       const bytes = new Uint8Array(res.message)
+      if (!this.data.connected) {
+        const info = String.fromCharCode(...bytes).trim()
+        this.log('<<< 握手响应: ' + info)
+        this.setData({ connected: true, connecting: false })
+        return
+      }
       this.log('<<< 收到数据包: ' + bytes.length + ' 字节')
       this.onReceiveData(res.message)
     })
@@ -85,16 +89,13 @@ Page({
 
     socket.onError((err) => {
       this.log('!!! 连接错误: ' + JSON.stringify(err))
-      this.setData({ connected: false, capturing: false })
+      this.setData({ connected: false, connecting: false })
       this.socket = null
-      wx.showToast({ title: '连接失败', icon: 'none' })
+      wx.showModal({ title: '连接失败', content: '无法连接设备', showCancel: false, complete: () => wx.navigateBack() })
     })
 
     this.log('>>> 发起TCP连接请求...')
-    socket.connect({
-      address: this.esp32IP,
-      port: this.esp32Port
-    })
+    socket.connect({ address: this.esp32IP, port: this.esp32Port })
   },
 
   disconnect() {

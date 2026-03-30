@@ -109,8 +109,34 @@ Page({
   },
 
   onCardTap(e) {
-    const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/pages/index/index' })
+    const device = e.currentTarget.dataset.device
+    wx.showLoading({ title: '连接中...', mask: true })
+
+    const socket = wx.createTCPSocket()
+    this.testSocket = socket
+
+    socket.onConnect(() => {
+      socket.write('HELLO\n')
+    })
+
+    socket.onMessage(res => {
+      wx.hideLoading()
+      socket.close()
+      this.testSocket = null
+      wx.navigateTo({ url: `/pages/index/index?name=${device.name}&icon=${device.icon}&mac=${device.mac}` })
+    })
+
+    socket.onError(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '无法连接设备', icon: 'none' })
+      this.testSocket = null
+    })
+
+    socket.onClose(() => {
+      wx.hideLoading()
+    })
+
+    socket.connect({ address: this.data.esp32IP, port: this.data.esp32Port })
   },
 
   onSettingsTap() {

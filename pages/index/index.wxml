@@ -3,14 +3,8 @@
 
   <!-- 连接状态 -->
   <view class="status-bar {{connected ? 'connected' : 'disconnected'}}">
-    <text>{{connected ? '已连接 ESP32' : '未连接'}}</text>
+    <text>{{connecting ? '连接中...' : (connected ? '已连接 ' + deviceName : '未连接')}}</text>
   </view>
-
-  <!-- 连接/断开按钮 -->
-  <button class="btn {{connected ? 'btn-disconnect' : 'btn-connect'}}"
-          bindtap="connectESP32">
-    {{connected ? '断开连接' : '连接 ESP32'}}
-  </button>
 
   <!-- 拍照按钮 -->
   <button class="btn btn-capture"
@@ -44,11 +38,9 @@
   <!-- 使用提示 -->
   <view class="tips">
     <text class="tips-title">使用说明：</text>
-    <text>1. 手机WiFi切换至 "ESP32-CAM"</text>
-    <text>2. 点击"连接 ESP32"测试通信</text>
-    <text>3. 连接后点击"拍照"采集图像</text>
-    <text>4. 图片自动保存到本地</text>
-    <text>5. 切回家里WiFi后去相册上传</text>
+    <text>1. 点击"拍照"采集图像</text>
+    <text>2. 图片自动保存到本地</text>
+    <text>3. 切回家里WiFi后去相册上传</text>
   </view>
 
   <!-- 调试日志 -->
