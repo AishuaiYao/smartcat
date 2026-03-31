@@ -57,6 +57,11 @@
   color: white;
 }
 
+.btn-collect {
+  background-color: #FF9800;
+  color: white;
+}
+
 .btn-album {
   background-color: #722ed1;
   color: white;

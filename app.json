@@ -5,7 +5,8 @@
     "pages/assistant/assistant",
     "pages/my/my",
     "pages/index/index",
-    "pages/album/album"
+    "pages/album/album",
+    "pages/collect/collect"
   ],
   "window": {
     "navigationBarTitleText": "ESP32摄像头",

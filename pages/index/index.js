@@ -259,5 +259,21 @@ Page({
   goToAlbum() {
     this.log('>>> 跳转相册')
     wx.navigateTo({ url: '/pages/album/album' })
+  },
+
+  goToCollect() {
+    this.log('>>> 进入数据采集模式')
+    const cmd = 'MODE_COLLECT\n'
+    const buffer = new ArrayBuffer(cmd.length)
+    const view = new Uint8Array(buffer)
+    for (let i = 0; i < cmd.length; i++) {
+      view[i] = cmd.charCodeAt(i)
+    }
+    this.socket.write(buffer)
+    this.log('>>> MODE_COLLECT 已发送')
+    wx.navigateTo({
+      url: '/pages/collect/collect',
+      fail: (err) => this.log('!!! 跳转失败: ' + JSON.stringify(err))
+    })
   }
 })

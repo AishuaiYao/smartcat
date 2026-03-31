@@ -1,16 +1,21 @@
 <view class="container">
-  <view class="title">ESP32 摄像头</view>
-
   <!-- 连接状态 -->
   <view class="status-bar {{connected ? 'connected' : 'disconnected'}}">
     <text>{{connecting ? '连接中...' : (connected ? '已连接 ' + deviceName : '未连接')}}</text>
   </view>
 
-  <!-- 拍照按钮 -->
+  <!-- 测试按钮 -->
   <button class="btn btn-capture"
           bindtap="captureImage"
           disabled="{{!connected || capturing}}">
-    {{capturing ? '采集中 ' + progress + '%' : '拍照'}}
+    {{capturing ? '采集中 ' + progress + '%' : '测试'}}
+  </button>
+
+  <!-- 数据采集按钮 -->
+  <button class="btn btn-collect"
+          bindtap="goToCollect"
+          disabled="{{!connected}}">
+    数据采集
   </button>
 
   <!-- 进度条 -->
