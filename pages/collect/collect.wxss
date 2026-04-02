@@ -1,35 +1,34 @@
 .container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
   height: 100vh;
   padding: 20rpx;
   box-sizing: border-box;
   background: #1a1a1a;
 }
 
-.control-left,
-.control-right {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 40rpx;
-  width: 160rpx;
+.status-bar {
+  width: 100%;
+  padding: 20rpx;
+  text-align: center;
+  color: #4CAF50;
+  font-size: 32rpx;
+  font-weight: bold;
 }
 
 .image-area {
+  width: 100%;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  margin: 0 20rpx;
+  margin: 20rpx 0;
 }
 
 .preview {
   width: 100%;
-  height: 100%;
+  max-width: 480rpx;
   border: 4rpx solid #333;
   border-radius: 8rpx;
 }
@@ -37,6 +36,18 @@
 .placeholder {
   color: #666;
   font-size: 28rpx;
+}
+
+.control-area {
+  width: 100%;
+  padding: 20rpx;
+}
+
+.control-row {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
 }
 
 .ctrl-btn {

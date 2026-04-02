@@ -18,10 +18,11 @@ Page({
   expectedLength: 0,
   receiveOffset: 0,
   chunkCount: 0,
+  headerBuffer: [],
 
   log(msg) {
     const time = new Date().toLocaleTimeString()
-    console.log('[小程序] ' + time + ' ' + msg)
+    console.log('[Index] ' + time + ' ' + msg)
     const msgs = this.data.logMsgs
     msgs.unshift(time + ' | ' + msg)
     if (msgs.length > 50) msgs.pop()
@@ -107,7 +108,6 @@ Page({
     this.setData({ connected: false, capturing: false })
   },
 
-  // 拍照
   captureImage() {
     this.log('>>> captureImage 调用, connected=' + this.data.connected + ', capturing=' + this.data.capturing)
 
@@ -127,81 +127,61 @@ Page({
     this.receiveOffset = 0
     this.expectedLength = 0
     this.chunkCount = 0
+    this.headerBuffer = []
 
+    this.log('>>> 发送CAPTURE命令')
     const cmd = 'CAPTURE\n'
-    this.log('>>> 发送CAPTURE命令, ' + cmd.length + ' 字节')
-
     const buffer = new ArrayBuffer(cmd.length)
     const view = new Uint8Array(buffer)
     for (let i = 0; i < cmd.length; i++) {
       view[i] = cmd.charCodeAt(i)
     }
-
-    try {
-      this.socket.write(buffer)
-      this.log('>>> CAPTURE命令已发出')
-    } catch (e) {
-      this.log('!!! 发送命令异常: ' + JSON.stringify(e))
-      this.setData({ capturing: false })
-    }
+    this.socket.write(buffer)
   },
 
-  // 接收TCP数据
   onReceiveData(data) {
     const bytes = new Uint8Array(data)
     let offset = 0
 
-    // 读取帧头（4字节大端长度）
-    if (!this.receiveBuffer) {
-      this.log('    解析帧头...')
-      if (bytes.length < 4) {
-        this.log('!!! 数据包不足4字节，当前: ' + bytes.length + ' 字节')
-        return
+    while (offset < bytes.length) {
+      if (!this.receiveBuffer) {
+        while (this.headerBuffer.length < 4 && offset < bytes.length) {
+          this.headerBuffer.push(bytes[offset++])
+        }
+        if (this.headerBuffer.length < 4) return
+
+        this.expectedLength = (this.headerBuffer[0] << 24) | (this.headerBuffer[1] << 16) | (this.headerBuffer[2] << 8) | this.headerBuffer[3]
+        this.headerBuffer = []
+        this.receiveBuffer = new Uint8Array(this.expectedLength)
+        this.receiveOffset = 0
+        this.chunkCount = 0
+        this.log('    帧头: 预期图像=' + this.expectedLength + ' 字节')
       }
 
-      this.expectedLength = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]
-      offset = 4
+      const remaining = bytes.length - offset
+      const toWrite = Math.min(remaining, this.expectedLength - this.receiveOffset)
+      this.receiveBuffer.set(bytes.subarray(offset, offset + toWrite), this.receiveOffset)
+      this.receiveOffset += toWrite
+      offset += toWrite
+      this.chunkCount++
 
-      this.log('    帧头: 预期图像=' + this.expectedLength + ' 字节 (预期19200)')
+      const progress = Math.floor((this.receiveOffset / this.expectedLength) * 100)
+      this.setData({ progress })
 
-      if (this.expectedLength !== 160 * 120) {
-        this.log('!!! 警告: 大小' + this.expectedLength + '与预期19200不一致')
+      if (this.receiveOffset >= this.expectedLength) {
+        this.log('<<< 图像接收完成! 共' + this.chunkCount + '包, ' + this.receiveOffset + '字节')
+        this.processImage(this.receiveBuffer)
+        this.receiveBuffer = null
+        this.receiveOffset = 0
+        this.chunkCount = 0
+        this.setData({ capturing: false, progress: 0 })
       }
-
-      this.receiveBuffer = new Uint8Array(this.expectedLength)
-      this.receiveOffset = 0
-      this.chunkCount = 0
-    }
-
-    // 写入数据到缓冲区
-    const remaining = bytes.length - offset
-    const toWrite = Math.min(remaining, this.expectedLength - this.receiveOffset)
-    this.receiveBuffer.set(bytes.subarray(offset, offset + toWrite), this.receiveOffset)
-    this.receiveOffset += toWrite
-    this.chunkCount++
-
-    if (this.chunkCount <= 3 || this.chunkCount % 20 === 0) {
-      this.log('    第' + this.chunkCount + '包: +' + toWrite + 'B, 累计' + this.receiveOffset + '/' + this.expectedLength)
-    }
-
-    const progress = Math.floor((this.receiveOffset / this.expectedLength) * 100)
-    this.setData({ progress })
-
-    // 接收完成
-    if (this.receiveOffset >= this.expectedLength) {
-      this.log('<<< 图像接收完成! 共' + this.chunkCount + '包, ' + this.receiveOffset + '字节')
-      this.processImage(this.receiveBuffer)
-      this.receiveBuffer = null
-      this.receiveOffset = 0
-      this.chunkCount = 0
-      this.setData({ capturing: false, progress: 0 })
     }
   },
 
-  // 灰度图转PNG
   processImage(grayData) {
     this.log('>>> 处理图像, 长度=' + grayData.length)
-    const width = 160
+    const width = grayData.length === 38400 ? 320 : 160
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
 
@@ -232,7 +212,6 @@ Page({
     })
   },
 
-  // 保存到本地
   saveImageToLocal(tempFilePath) {
     this.log('>>> 保存图片: ' + tempFilePath)
     wx.saveFile({
@@ -262,18 +241,8 @@ Page({
   },
 
   goToCollect() {
-    this.log('>>> 进入数据采集模式')
-    const cmd = 'MODE_COLLECT\n'
-    const buffer = new ArrayBuffer(cmd.length)
-    const view = new Uint8Array(buffer)
-    for (let i = 0; i < cmd.length; i++) {
-      view[i] = cmd.charCodeAt(i)
-    }
-    this.socket.write(buffer)
-    this.log('>>> MODE_COLLECT 已发送')
-    wx.navigateTo({
-      url: '/pages/collect/collect',
-      fail: (err) => this.log('!!! 跳转失败: ' + JSON.stringify(err))
-    })
+    this.log('>>> 跳转数据采集页面')
+    this.disconnect()
+    wx.navigateTo({ url: '/pages/collect/collect' })
   }
 })

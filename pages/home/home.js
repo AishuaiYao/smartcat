@@ -150,9 +150,7 @@ Page({
     this.saveDevices()
   },
 
-  catchTap() {
-    // 阻止事件冒泡
-  },
+  catchTap() {},
 
   onTabTap(e) {
     const tab = e.currentTarget.dataset.tab

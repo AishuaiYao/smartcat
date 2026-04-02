@@ -1,19 +1,24 @@
 <view class="container">
-  <!-- 左侧控制区 -->
-  <view class="control-left">
-    <button class="ctrl-btn forward" bindtouchstart="onForward" bindtouchend="onStop">前进</button>
-    <button class="ctrl-btn backward" bindtouchstart="onBackward" bindtouchend="onStop">后退</button>
+  <!-- 状态栏 -->
+  <view class="status-bar">
+    <text>{{streaming ? '采集中 第' + frameCount + '帧' : '连接中...'}}</text>
   </view>
 
-  <!-- 中间图像区 -->
+  <!-- 图像区 -->
   <view class="image-area">
     <image class="preview" src="{{imageData}}" mode="aspectFit" wx:if="{{imageData}}"></image>
     <text class="placeholder" wx:else>等待图像...</text>
   </view>
 
-  <!-- 右侧控制区 -->
-  <view class="control-right">
-    <button class="ctrl-btn left" bindtouchstart="onLeft" bindtouchend="onStop">左转</button>
-    <button class="ctrl-btn right" bindtouchstart="onRight" bindtouchend="onStop">右转</button>
+  <!-- 控制区 -->
+  <view class="control-area">
+    <view class="control-row">
+      <button class="ctrl-btn forward" bindtouchstart="onForward" bindtouchend="onStop">前进</button>
+    </view>
+    <view class="control-row">
+      <button class="ctrl-btn left" bindtouchstart="onLeft" bindtouchend="onStop">左转</button>
+      <button class="ctrl-btn backward" bindtouchstart="onBackward" bindtouchend="onStop">后退</button>
+      <button class="ctrl-btn right" bindtouchstart="onRight" bindtouchend="onStop">右转</button>
+    </view>
   </view>
 </view>
