@@ -143,6 +143,10 @@ Page({
     this.setData({ showDelete: !this.data.showDelete })
   },
 
+  onDebugTap() {
+    wx.navigateTo({ url: '/pages/collect/collect?debug=1' })
+  },
+
   onDeleteDevice(e) {
     const id = e.currentTarget.dataset.id
     const devices = this.data.devices.filter(d => d.id !== id)

@@ -49,6 +49,17 @@
   color: #333;
 }
 
+.title-right-group {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.debug-btn {
+  font-size: 24rpx;
+  color: #1890ff;
+}
+
 .title-right {
   font-size: 28rpx;
   color: #666;

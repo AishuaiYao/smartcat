@@ -3,7 +3,8 @@ Page({
     imageData: null,
     frameCount: 0,
     streaming: false,
-    fps: 0
+    fps: 0,
+    debugMode: false
   },
 
   // 帧率计算
@@ -19,7 +20,13 @@ Page({
   frameBuffer: null,         // 当前帧缓冲区 { frameNum, totalChunks, chunks[], receivedCount }
   frameSize: 19200,          // 160x120 灰度图
 
-  onLoad() {
+  onLoad(options) {
+    // 调试模式
+    if (options.debug === '1') {
+      this.setData({ debugMode: true, streaming: true })
+      this.generateDebugImage()
+      return
+    }
     this.connectDevice()
   },
 
@@ -277,23 +284,59 @@ Page({
   },
 
   onForward() {
+    if (this.data.debugMode) return
     this.sendCommand('MOTOR_FORWARD')
   },
 
   onBackward() {
+    if (this.data.debugMode) return
     this.sendCommand('MOTOR_BACKWARD')
   },
 
   onLeft() {
+    if (this.data.debugMode) return
     this.sendCommand('MOTOR_LEFT')
   },
 
   onRight() {
+    if (this.data.debugMode) return
     this.sendCommand('MOTOR_RIGHT')
   },
 
   onStop() {
+    if (this.data.debugMode) return
     this.sendCommand('MOTOR_STOP')
+  },
+
+  generateDebugImage() {
+    const width = 160
+    const height = 120
+    const rgbaData = new Uint8ClampedArray(width * height * 4)
+    
+    // 生成渐变测试图案
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const i = (y * width + x) * 4
+        const gray = Math.floor((x / width) * 255)
+        rgbaData[i] = gray
+        rgbaData[i + 1] = gray
+        rgbaData[i + 2] = gray
+        rgbaData[i + 3] = 255
+      }
+    }
+    
+    const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
+    const ctx = canvas.getContext('2d')
+    const imgData = ctx.createImageData(width, height)
+    imgData.data.set(rgbaData)
+    ctx.putImageData(imgData, 0, 0)
+    
+    wx.canvasToTempFilePath({
+      canvas,
+      success: (res) => {
+        this.setData({ imageData: res.tempFilePath })
+      }
+    })
   }
 
 })
