@@ -4,7 +4,9 @@ Page({
     frameCount: 0,
     streaming: false,
     fps: 0,
-    debugMode: false
+    debugMode: false,
+    running: false,
+    speed: 5
   },
 
   // 帧率计算
@@ -296,6 +298,20 @@ Page({
   onStop() {
     if (this.data.debugMode) return
     this.sendCommand('MOTOR_STOP')
+  },
+
+  onStartStop() {
+    const running = !this.data.running
+    this.setData({ running })
+    if (this.data.debugMode) return
+    this.sendCommand(running ? 'START' : 'STOP')
+  },
+
+  onSpeedChange(e) {
+    const speed = e.detail.value
+    this.setData({ speed })
+    if (this.data.debugMode) return
+    this.sendCommand('SPEED:' + speed)
   },
 
   generateDebugImage() {

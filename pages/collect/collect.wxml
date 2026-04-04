@@ -4,6 +4,18 @@
     <text>{{streaming ? '采集中 帧率' + fps : '连接中...'}}</text>
   </view>
 
+  <!-- 顶部控制栏 -->
+  <view class="top-control">
+    <view class="start-btn {{running ? 'running' : ''}}" bindtap="onStartStop">
+      <text>{{running ? '停止' : '启动'}}</text>
+    </view>
+    <view class="speed-control">
+      <text class="speed-label">速度</text>
+      <slider class="speed-slider" min="1" max="10" value="{{speed}}" block-size="20" activeColor="#4CAF50" backgroundColor="#333" bindchange="onSpeedChange" />
+      <text class="speed-value">{{speed}}</text>
+    </view>
+  </view>
+
   <!-- 图像区 - 居中 -->
   <view class="image-area">
     <image class="preview" src="{{imageData}}" mode="aspectFit" wx:if="{{imageData}}"></image>

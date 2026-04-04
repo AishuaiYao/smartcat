@@ -30,6 +30,57 @@ page {
   z-index: 10;
 }
 
+/* 顶部控制栏 */
+.top-control {
+  position: absolute;
+  top: 1rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  z-index: 10;
+}
+
+.start-btn {
+  padding: 2rpx 20rpx;
+  background: #4CAF50;
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: bold;
+  border-radius: 24rpx;
+}
+
+.start-btn.running {
+  background: #ff4d4f;
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2rpx 15rpx;
+  border-radius: 24rpx;
+}
+
+.speed-label {
+  color: #fff;
+  font-size: 20rpx;
+}
+
+.speed-slider {
+  width: 120rpx;
+}
+
+.speed-value {
+  color: #4CAF50;
+  font-size: 20rpx;
+  font-weight: bold;
+  min-width: 24rpx;
+  text-align: center;
+}
+
 .image-area {
   display: flex;
   align-items: center;
