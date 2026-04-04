@@ -1,960 +1,138 @@
-I (13882) dl::Model: +------------------------------+------------------+-----------+
-I (13882) dl::Model: |                       module summary                        |
-I (13892) dl::Model: +------------------------------+------------------+-----------+
-I (13892) dl::Model: | name                         | type             | latency   |
-I (13902) dl::Model: +------------------------------+------------------+-----------+
-I (13912) dl::Model: | /enc1/conv/conv.0/Conv       | Conv             | 705716us  |
-I (13922) dl::Model: +------------------------------+------------------+-----------+
-I (13932) dl::Model: | /enc1/conv/conv.3/Conv       | Conv             | 713570us  |
-I (13942) dl::Model: +------------------------------+------------------+-----------+
-I (13942) dl::Model: | /pool/MaxPool                | MaxPool          | 15263us   |
-I (13952) dl::Model: +------------------------------+------------------+-----------+
-I (13962) dl::Model: | /enc2/conv/conv.0/Conv       | Conv             | 150803us  |
-I (13972) dl::Model: +------------------------------+------------------+-----------+
-I (13982) dl::Model: | /enc2/conv/conv.3/Conv       | Conv             | 231595us  |
-I (13992) dl::Model: +------------------------------+------------------+-----------+
-I (14002) dl::Model: | /pool_1/MaxPool              | MaxPool          | 7083us    |
-I (14002) dl::Model: +------------------------------+------------------+-----------+
-I (14012) dl::Model: | PPQ_Operation_4              | RequantizeLinear | 7699us    |
-I (14022) dl::Model: +------------------------------+------------------+-----------+
-I (14032) dl::Model: | /enc3/conv/conv.0/Conv       | Conv             | 35253us   |
-I (14042) dl::Model: +------------------------------+------------------+-----------+
-I (14052) dl::Model: | /enc3/conv/conv.3/Conv       | Conv             | 32196us   |
-I (14052) dl::Model: +------------------------------+------------------+-----------+
-I (14062) dl::Model: | /pool_2/MaxPool              | MaxPool          | 3353us    |
-I (14072) dl::Model: +------------------------------+------------------+-----------+
-I (14082) dl::Model: | PPQ_Operation_3              | RequantizeLinear | 3624us    |
-I (14092) dl::Model: +------------------------------+------------------+-----------+
-I (14102) dl::Model: | /bottleneck/conv/conv.0/Conv | Conv             | 17325us   |
-I (14102) dl::Model: +------------------------------+------------------+-----------+
-I (14112) dl::Model: | /bottleneck/conv/conv.3/Conv | Conv             | 832556us  |
-I (14122) dl::Model: +------------------------------+------------------+-----------+
-I (14132) dl::Model: | PPQ_Operation_0              | InsertZeros      | 12621us   |
-I (14142) dl::Model: +------------------------------+------------------+-----------+
-I (14152) dl::Model: | /up3/ConvTranspose           | Conv             | 31183us   |
-I (14162) dl::Model: +------------------------------+------------------+-----------+
-I (14162) dl::Model: | /Concat                      | Concat           | 12545us   |
-I (14172) dl::Model: +------------------------------+------------------+-----------+
-I (14182) dl::Model: | /dec3/conv/conv.0/Conv       | Conv             | 64768us   |
-I (14192) dl::Model: +------------------------------+------------------+-----------+
-I (14202) dl::Model: | /dec3/conv/conv.3/Conv       | Conv             | 32152us   |
-I (14212) dl::Model: +------------------------------+------------------+-----------+
-I (14212) dl::Model: | PPQ_Operation_1              | InsertZeros      | 26162us   |
-I (14222) dl::Model: +------------------------------+------------------+-----------+
-I (14232) dl::Model: | /up2/ConvTranspose           | Conv             | 143370us  |
-I (14242) dl::Model: +------------------------------+------------------+-----------+
-I (14252) dl::Model: | /Concat_1                    | Concat           | 27279us   |
-I (14262) dl::Model: +------------------------------+------------------+-----------+
-I (14262) dl::Model: | /dec2/conv/conv.0/Conv       | Conv             | 227872us  |
-I (14272) dl::Model: +------------------------------+------------------+-----------+
-I (14282) dl::Model: | /dec2/conv/conv.3/Conv       | Conv             | 276053us  |
-I (14292) dl::Model: +------------------------------+------------------+-----------+
-I (14302) dl::Model: | PPQ_Operation_2              | InsertZeros      | 53168us   |
-I (14312) dl::Model: +------------------------------+------------------+-----------+
-I (14322) dl::Model: | /up1/ConvTranspose           | Conv             | 700614us  |
-I (14322) dl::Model: +------------------------------+------------------+-----------+
-I (14332) dl::Model: | /Concat_2                    | Concat           | 80134us   |
-I (14342) dl::Model: +------------------------------+------------------+-----------+
-I (14352) dl::Model: | /dec1/conv/conv.0/Conv       | Conv             | 1103618us |
-I (14362) dl::Model: +------------------------------+------------------+-----------+
-I (14372) dl::Model: | /dec1/conv/conv.3/Conv       | Conv             | 711073us  |
-I (14372) dl::Model: +------------------------------+------------------+-----------+
-I (14382) dl::Model: | /out/Conv                    | Conv             | 37860us   |
-I (14392) dl::Model: +------------------------------+------------------+-----------+
-I (14402) dl::Model: | total                        |                  | 6296508us |
-I (14412) dl::Model: +------------------------------+------------------+-----------+
+ (2498) CAM_TCP: [Model] 输入名称: input
+I (2508) CAM_TCP: [Model] 输出数量: 1
+I (2508) CAM_TCP: [Model] 输出名称: output
+I (2518) CAM_TCP: [Model] 模型加载成功
+I (2518) CAM_TCP: [Camera] 初始化摄像头...
+I (2528) s3 ll_cam: DMA Channel=0
+I (2528) cam_hal: cam init ok
+I (2528) sccb: pin_sda 4 pin_scl 5
+I (2538) sccb: sccb_i2c_port=1
+I (2548) camera: Camera PID=0x26 VER=0x42 MIDL=0x7f MIDH=0xa2
+I (2548) camera: Detected OV2640 camera
+I (2548) camera: Detected camera at address=0x30
+I (2628) cam_hal: PSRAM DMA mode disabled
+I (2628) s3 ll_cam: node_size: 3840, nodes_per_line: 1, lines_per_node: 12
+I (2628) s3 ll_cam: dma_half_buffer_min:  3840, dma_half_buffer:  7680, lines_per_half_buffer: 24, dma_buffer_size: 30720
+I (2638) cam_hal: buffer_size: 30720, half_buffer_size: 7680, node_buffer_size: 3840, node_cnt: 8, total_cnt: 5
+I (2648) cam_hal: Allocating 19200 Byte frame buffer in PSRAM
+I (2658) cam_hal: cam config ok
+I (2658) ov2640: Set PLL: clk_2x: 1, clk_div: 3, pclk_auto: 1, pclk_div: 8
+I (2728) CAM_TCP: [Camera] 初始化成功 (QQVGA 160x120 灰度)
+I (2728) pp: pp rom version: e7ae62f
+I (2728) net80211: net80211 rom version: e7ae62f
+I (2748) wifi:wifi driver task: 3fcbcaac, prio:23, stack:6656, core=0
+I (2748) wifi:wifi firmware version: ccaebfa
+I (2748) wifi:wifi certification version: v7.0
+I (2748) wifi:config NVS flash: enabled
+I (2758) wifi:config nano formating: disabled
+I (2758) wifi:Init data frame dynamic rx buffer num: 32
+I (2768) wifi:Init static rx mgmt buffer num: 5
+I (2768) wifi:Init management short buffer num: 32
+I (2768) wifi:Init static tx buffer num: 16
+I (2778) wifi:Init tx cache buffer num: 32
+I (2778) wifi:Init static tx FG buffer num: 2
+I (2788) wifi:Init static rx buffer size: 1600
+I (2788) wifi:Init static rx buffer num: 10
+I (2788) wifi:Init dynamic rx buffer num: 32
+cam_hal: FB-SIZE: 15360 != 19200
+I (2798) wifi_init: rx ba win: 6
+I (2798) wifi_init: accept mbox: 6
+I (2808) wifi_init: tcpip mbox: 32
+I (2808) wifi_init: udp mbox: 6
+I (2818) wifi_init: tcp mbox: 6
+I (2818) wifi_init: tcp tx win: 5760
+I (2818) wifi_init: cam_hal: FB-SIZE: 15360 != 19200
+tcp rx win: 5760
+I (2828) wifi_init: tcp mss: 1440
+I (2838) wifi_init: WiFi IRAM OP enabled
+I (2838) wifi_init: WiFi RX IRAM OP enabled
+I (2848) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10
+I (2888) wifi:mode : softAP (3c:0f:02:d7:57:01)
+I (2888) wifi:Total power save buffer number: 8
+I (2888) wifi:Init max length of beacon: 752/752
+I (2888) wifi:Init max length of beacon: 752/752
+I (2888) CAM_TCP: [WiFi] AP已启动 SSID=ESP32-CAM 密码=12345678 IP=192.168.4.1
+I (2888) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1
+I (2908) CAM_TCP: [UDP] UDP socket已启动, 端口=5001
+I (2918) CAM_TCP: ========================================
+I (2918) CAM_TCP: [TCP] Server已启动, 端口=5000
+I (2918) CAM_TCP: 系统启动完成!
+I (2928) CAM_TCP: 热点: ESP32-CAM  密码: 12345678
+I (2938) CAM_TCP: TCP端口: 5000  UDP端口: 5001
+I (2938) CAM_TCP: ========================================
+I (2948) main_task: Returned from app_main()
+I (5938) wifi:new:<1,0>, old:<1,1>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0
+I (5938) wifi:station: da:c6:6e:41:51:37 join, AID=1, bgn, 20
+I (6138) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2
+I (6348) wifi:<ba-add>idx:2 (ifx:1, da:c6:6e:41:51:37), tid:0, ssn:2877, winSize:64
+I (6388) wifi:<ba-add>idx:3 (ifx:1, da:c6:6e:41:51:37), tid:2, ssn:3890, winSize:64
+I (7258) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2
+I (10518) CAM_TCP: [TCP] 客户端已连接
+I (10518) CAM_TCP: [TCP] 握手成功: LinePatrol V1|😊|3C:0F:02:D7:57:01
 
-I (14422) CAM_TCP: [Model] 输入数量: 1
-I (14422) CAM_TCP: [Model] 输入名称: input
-I (14432) CAM_TCP: [Model] 输出数量: 1
-I (14432) CAM_TCP: [Model] 输出名称: output
-I (14442) CAM_TCP: [Model] 模型加载成功
-I (14442) CAM_TCP: [Camera] 初始化摄像头...
-I (14452) s3 ll_cam: DMA Channel=0
-I (14452) cam_hal: cam init ok
-I (14452) sccb: pin_sda 4 pin_scl 5
-I (14462) sccb: sccb_i2c_port=1
-I (14472) camera: Camera PID=0x26 VER=0x42 MIDL=0x7f MIDH=0xa2
-I (14472) camera: Detected OV2640 camera
-I (14472) camera: Detected camera at address=0x30
-I (14552) cam_hal: PSRAM DMA mode disabled
-I (14552) s3 ll_cam: node_size: 3840, nodes_per_line: 1, lines_per_node: 12
-I (14552) s3 ll_cam: dma_half_buffer_min:  3840, dma_half_buffer:  7680, lines_per_half_buffer: 24, dma_buffer_size: 30720
-I (14562) cam_hal: buffer_size: 30720, half_buffer_size: 7680, node_buffer_size: 3840, node_cnt: 8, total_cnt: 5
-I (14572) cam_hal: Allocating 19200 Byte frame buffer in PSRAM
-I (14582) cam_hal: cam config ok
-I (14592) ov2640: Set PLL: clk_2x: 1, clk_div: 3, pclk_auto: 1, pclk_div: 8
-I (14652) CAM_TCP: [Camera] 初始化成功 (QQVGA 160x120 灰度)
-I (14652) pp: pp rom version: e7ae62f
-I (14652) net80211: net80211 rom version: e7ae62f
-I (14672) wifi:wifi driver task: 3fcbbba4, prio:23, stack:6656, core=0
-I (14672) wifi:wifi firmware version: ccaebfa
-I (14672) wifi:wifi certification version: v7.0
-I (14672) wifi:config NVS flash: enabled
-I (14682) wifi:config nano formating: disabled
-I (14682) wifi:Init data frame dynamic rx buffer num: 32
-I (14692) wifi:Init static rx mgmt buffer num: 5
-I (14692) wifi:Init management short buffer num: 32
-I (14702) wifi:Init static tx buffer num: 16
-I (14702) wifi:Init tx cache buffer num: 32
-I (14702) wifi:Init static tx FG buffer num: 2
-I (14712) wifi:Init static rx buffer size: 1600
-I (14712) wifi:Init static rx buffer num: 10
-I (14722) wifi:Init dynamic rx buffer num: 32
-I (14722) wifi_init: rx ba win: 6
-I (14722) wifi_init: accept mbox: 6
-I (14732) wifi_init: tcpip mbox: 32
-I (14732) wifi_init: udp mbox: 6
-I (14742) wifi_init: tcp mbox: 6
-I (14742) wifi_init: tcp tx win: 5760
-I (14742) wifi_init: tcp rx win: 5760
-I (14752) wifi_init: tcp mss: 1440
-I (14752) wifi_init: WiFi IRAM OP enabled
-I (14762) wifi_init: WiFi RX IRAM OP enabled
-I (14762) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10
-I (14812) wifi:mode : softAP (3c:0f:02:d7:57:01)
-I (14812) wifi:Total power save buffer number: 8
-I (14812) wifi:Init max length of beacon: 752/752
-I (14812) wifi:Init max length of beacon: 752/752
-I (14812) CAM_TCP: [WiFi] AP已启动 SSID=ESP32-CAM 密码=12345678 IP=192.168.4.1
-I (14822) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1
-I (14832) CAM_TCP: [TCP] Server已启动, 端口=5000
-I (14842) CAM_TCP: ========================================
-I (14842) CAM_TCP: 系统启动完成!
-I (14852) CAM_TCP: 热点: ESP32-CAM  密码: 12345678
-I (14852) CAM_TCP: TCP端口: 5000
-I (14862) CAM_TCP: ========================================
-I (14862) main_task: Returned from app_main()
-I (18212) wifi:new:<1,0>, old:<1,1>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0
-I (18222) wifi:station: ca:8f:b6:8b:60:8e join, AID=1, bgn, 20
-I (19412) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2
-I (21432) wifi:<ba-add>idx:2 (ifx:1, ca:8f:b6:8b:60:8e), tid:0, ssn:3908, winSize:64
-I (24742) CAM_TCP: [TCP] 客户端已连接
-I (26742) CAM_TCP: [TCP] 收到命令: CAPTURE
+I (11198) wifi:<ba-add>idx:4 (ifx:1, da:c6:6e:41:51:37), tid:4, ssn:1156, winSize:64
+I (11868) CAM_TCP: [TCP] 客户端断开
+I (13868) CAM_TCP: [TCP] 客户端已连接
+I (13878) CAM_TCP: [TCP] 握手成功: LinePatrol V1|😊|3C:0F:02:D7:57:01
 
-I (26742) CAM_TCP: [Camera] 采集成功: 160x120, 大小=19200 bytes, 耗时0.0ms
-I (26742) CAM_TCP: [Input] Tensor shape: 1 x 256 x 256 x 1
-I (26762) CAM_TCP: [Preprocess] 缩放耗时19.9ms
-E (31742) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (31742) task_wdt:  - IDLE0 (CPU 0)
-E (31742) task_wdt: Tasks currently running:
-E (31742) task_wdt: CPU 0: tcp_server
-E (31742) task_wdt: CPU 1: IDLE1
-E (31742) task_wdt: Print CPU 0 (current core) backtrace
+I (13898) CAM_TCP: [TCP] 客户端断开
+I (13968) CAM_TCP: [TCP] 客户端已连接
+I (13978) CAM_TCP: [TCP] 握手成功: LinePatrol V1|😊|3C:0F:02:D7:57:01
+
+I (16688) CAM_TCP: [TCP] 客户端断开
+I (17378) CAM_TCP: [TCP] 客户端已连接
+I (17378) CAM_TCP: [TCP] 握手成功: LinePatrol V1|😊|3C:0F:02:D7:57:01
+
+I (17478) CAM_TCP: [TCP] 收到命令: UDP_HELLO:5001
+
+I (17478) CAM_TCP: ========== UDP_HELLO ==========
+I (17488) CAM_TCP: [UDP] 收到UDP_HELLO, 端口=5001
+I (17488) CAM_TCP: [UDP] UDP socket状态: OK
+I (17498) CAM_TCP: [UDP] 客户端UDP地址: 192.168.4.2:5001
+I (17498) CAM_TCP: [UDP] UDP客户端就绪!
+I (17508) CAM_TCP: ================================
+I (17528) CAM_TCP: [TCP] 收到命令: STREAM
+
+I (17528) CAM_TCP: ========== STREAM 开始 ==========
+I (17528) CAM_TCP: [Stream] UDP状态: ready=1, sock=54
+I (17538) CAM_TCP: [Stream] UDP目标: 192.168.4.2:5001
+I (17548) CAM_TCP: [Stream] 帧大小: 19200 bytes
+I (17548) CAM_TCP: ================================
+I (18258) CAM_TCP: [Stream] 帧10: 发送19204字节, 耗时62.1ms, FPS=14.2
+I (19058) CAM_TCP: [Stream] 帧20: 发送19204字节, 耗时62.0ms, FPS=13.3
+I (19858) CAM_TCP: [Stream] 帧30: 发送19204字节, 耗时61.6ms, FPS=13.0
+I (20658) CAM_TCP: [Stream] 帧40: 发送19204字节, 耗时61.1ms, FPS=12.9
+I (21458) CAM_TCP: [Stream] 帧50: 发送19204字节, 耗时61.0ms, FPS=12.8
+I (22258) CAM_TCP: [Stream] 帧60: 发送19204字节, 耗时60.5ms, FPS=12.8
+I (23058) CAM_TCP: [Stream] 帧70: 发送19204字节, 耗时60.3ms, FPS=12.7
+I (23858) CAM_TCP: [Stream] 帧80: 发送19204字节, 耗时60.3ms, FPS=12.7
+I (24658) CAM_TCP: [Stream] 帧90: 发送19204字节, 耗时59.4ms, FPS=12.7
+I (24898) CAM_TCP: ========== STREAM 停止 ==========
+I (24898) CAM_TCP: [Stream] 收到STOP命令
+I (24898) CAM_TCP: [Stream] 总帧数: 93
+I (24898) CAM_TCP: [Stream] 总时长: 7342.4ms
+I (24908) CAM_TCP: [Stream] 平均FPS: 12.7
+I (24908) CAM_TCP: ================================
+I (24938) CAM_TCP: [TCP] 客户端断开
+I (37918) wifi:station: da:c6:6e:41:51:37 leave, AID = 1, reason = 8, bss_flags is 691299, bss:0x3fcaed58
+I (37918) wifi:new:<1,0>, old:<1,0>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0
+I (37928) wifi:<ba-del>idx:2, tid:0
+I (37928) wifi:<ba-del>idx:3, tid:2
+I (37938) wifi:<ba-del>idx:4, tid:4
 
 
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E64B:0x3FCE7E40 0x4213ECB7:0x3FCE7EC0 0x4205572A:0x3FCE7EE0 0x420564A0:0x3FCE8060 0x42013D21:0x3FCE80C0 0x4213DD3F:0x3FCE8110 0x4200A47D:0x3FCE8130
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e64b: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4213dd3f: dl::Model::run(dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:224
-0x4200a47d: tcp_server_task(void*) at E:/AICleanBot/main/app_main.cpp:233
- (inlined by) tcp_server_task at E:/AICleanBot/main/app_main.cpp:353
 
 
-I (33082) CAM_TCP: [Inference] 模型推理耗时6322.7ms
-I (33082) CAM_TCP: [Output] Tensor shape: 1 x 256 x 256 x 1
-I (33082) CAM_TCP: [Output] Tensor size: 65536, dtype: 3
-I (33182) CAM_TCP: [Postprocess] 后处理耗时92.2ms
-I (33182) CAM_TCP: [Concat] 拼接耗时1.2ms
-I (33452) CAM_TCP: [TCP] 图像发送完成: 38400 bytes, 传输耗时269.4ms, 总耗时6708.5ms
-I (104942) CAM_TCP: [TCP] 收到命令: CAPTURE
-
-I (104942) CAM_TCP: [Camera] 采集成功: 160x120, 大小=19200 bytes, 耗时0.0ms
-I (104942) CAM_TCP: [Input] Tensor shape: 1 x 256 x 256 x 1
-I (104962) CAM_TCP: [Preprocess] 缩放耗时19.9ms
-E (109942) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (109942) task_wdt:  - IDLE0 (CPU 0)
-E (109942) task_wdt: Tasks currently running:
-E (109942) task_wdt: CPU 0: tcp_server
-E (109942) task_wdt: CPU 1: IDLE1
-E (109942) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207EC3F:0x3FCE7E40 0x4213ECB7:0x3FCE7EC0 0x4205572A:0x3FCE7EE0 0x420564A0:0x3FCE8060 0x42013D21:0x3FCE80C0 0x4213DD3F:0x3FCE8110 0x4200A47D:0x3FCE8130
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207ec3f: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1833
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4213dd3f: dl::Model::run(dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:224
-0x4200a47d: tcp_server_task(void*) at E:/AICleanBot/main/app_main.cpp:233
- (inlined by) tcp_server_task at E:/AICleanBot/main/app_main.cpp:353
-
-
-I (111292) CAM_TCP: [Inference] 模型推理耗时6327.3ms
-I (111292) CAM_TCP: [Output] Tensor shape: 1 x 256 x 256 x 1
-I (111292) CAM_TCP: [Output] Tensor size: 65536, dtype: 3
-I (111382) CAM_TCP: [Postprocess] 后处理耗时94.8ms
-I (111382) CAM_TCP: [Concat] 拼接耗时1.3ms
-I (111642) CAM_TCP: [TCP] 图像发送完成: 38400 bytes, 传输耗时252.3ms, 总耗时6698.9ms
-I (122392) CAM_TCP: [TCP] 收到命令: CAPTURE
-
-I (122392) CAM_TCP: [Camera] 采集成功: 160x120, 大小=19200 bytes, 耗时0.0ms
-I (122392) CAM_TCP: [Input] Tensor shape: 1 x 256 x 256 x 1
-I (122412) CAM_TCP: [Preprocess] 缩放耗时20.0ms
-E (127392) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (127392) task_wdt:  - IDLE0 (CPU 0)
-E (127392) task_wdt: Tasks currently running:
-E (127392) task_wdt: CPU 0: tcp_server
-E (127392) task_wdt: CPU 1: IDLE1
-E (127392) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E695:0x3FCE7E40 0x4213ECB7:0x3FCE7EC0 0x4205572A:0x3FCE7EE0 0x420564A0:0x3FCE8060 0x42013D21:0x3FCE80C0 0x4213DD3F:0x3FCE8110 0x4200A47D:0x3FCE8130
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e695: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4213dd3f: dl::Model::run(dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:224
-0x4200a47d: tcp_server_task(void*) at E:/AICleanBot/main/app_main.cpp:233
- (inlined by) tcp_server_task at E:/AICleanBot/main/app_main.cpp:353
-
-
-I (128742) CAM_TCP: [Inference] 模型推理耗时6325.5ms
-I (128742) CAM_TCP: [Output] Tensor shape: 1 x 256 x 256 x 1
-I (128742) CAM_TCP: [Output] Tensor size: 65536, dtype: 3
-I (128832) CAM_TCP: [Postprocess] 后处理耗时95.0ms
-I (128832) CAM_TCP: [Concat] 拼接耗时1.2ms
-I (129172) CAM_TCP: [TCP] 图像发送完成: 38400 bytes, 传输耗时336.9ms, 总耗时6781.8ms
-I (134322) CAM_TCP: [TCP] 收到命令: CAPTURE
-
-I (134322) CAM_TCP: [Camera] 采集成功: 160x120, 大小=19200 bytes, 耗时0.0ms
-I (134322) CAM_TCP: [Input] Tensor shape: 1 x 256 x 256 x 1
-I (134342) CAM_TCP: [Preprocess] 缩放耗时20.1ms
-E (139322) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (139322) task_wdt:  - IDLE0 (CPU 0)
-E (139322) task_wdt: Tasks currently running:
-E (139322) task_wdt: CPU 0: tcp_server
-E (139322) task_wdt: CPU 1: IDLE1
-E (139322) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E9B3:0x3FCE7E40 0x4213ECB7:0x3FCE7EC0 0x4205572A:0x3FCE7EE0 0x420564A0:0x3FCE8060 0x42013D21:0x3FCE80C0 0x4213DD3F:0x3FCE8110 0x4200A47D:0x3FCE8130
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e9b3: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4213dd3f: dl::Model::run(dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:224
-0x4200a47d: tcp_server_task(void*) at E:/AICleanBot/main/app_main.cpp:233
- (inlined by) tcp_server_task at E:/AICleanBot/main/app_main.cpp:353
-
-
-I (140672) CAM_TCP: [Inference] 模型推理耗时6327.1ms
-I (140672) CAM_TCP: [Output] Tensor shape: 1 x 256 x 256 x 1
-I (140672) CAM_TCP: [Output] Tensor size: 65536, dtype: 3
-I (140762) CAM_TCP: [Postprocess] 后处理耗时94.6ms
-I (140762) CAM_TCP: [Concat] 拼接耗时1.2ms
-I (141022) CAM_TCP: [TCP] 图像发送完成: 38400 bytes, 传输耗时259.9ms, 总耗时6706.1ms
-I (150202) wifi:<ba-add>idx:3 (ifx:1, ca:8f:b6:8b:60:8e), tid:2, ssn:2028, winSize:64
-I (156442) CAM_TCP: [TCP] 收到命令: CAPTURE
-
-I (156442) CAM_TCP: [Camera] 采集成功: 160x120, 大小=19200 bytes, 耗时0.0ms
-I (156452) CAM_TCP: [Input] Tensor shape: 1 x 256 x 256 x 1
-I (156472) CAM_TCP: [Preprocess] 缩放耗时20.3ms
-E (161442) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (161442) task_wdt:  - IDLE0 (CPU 0)
-E (161442) task_wdt: Tasks currently running:
-E (161442) task_wdt: CPU 0: tcp_server
-E (161442) task_wdt: CPU 1: IDLE1
-E (161442) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E962:0x3FCE7E40 0x4213ECB7:0x3FCE7EC0 0x4205572A:0x3FCE7EE0 0x420564A0:0x3FCE8060 0x42013D21:0x3FCE80C0 0x4213DD3F:0x3FCE8110 0x4200A47D:0x3FCE8130
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e962: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4213dd3f: dl::Model::run(dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:224
-0x4200a47d: tcp_server_task(void*) at E:/AICleanBot/main/app_main.cpp:233
- (inlined by) tcp_server_task at E:/AICleanBot/main/app_main.cpp:353
-
-
-I (162802) CAM_TCP: [Inference] 模型推理耗时6337.6ms
-I (162802) CAM_TCP: [Output] Tensor shape: 1 x 256 x 256 x 1
-I (162812) CAM_TCP: [Output] Tensor size: 65536, dtype: 3
-I (162902) CAM_TCP: [Postprocess] 后处理耗时93.6ms
-I (162902) CAM_TCP: [Concat] 拼接耗时1.2ms
-I (163482) CAM_TCP: [TCP] 图像发送完成: 38400 bytes, 传输耗时586.1ms, 总耗时7042.0ms
-I (392032) CAM_TCP: [TCP] 客户端断开
-I (470452) wifi:station: ca:8f:b6:8b:60:8e leave, AID = 1, reason = 8, bss_flags is 167011, bss:0x3fce8728
-I (470452) wifi:new:<1,0>, old:<1,0>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0
-I (470452) wifi:<ba-del>idx:2, tid:0
-I (470452) wifi:<ba-del>idx:3, tid:2
-I (509132) wifi:new:<1,0>, old:<1,0>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0
-I (509132) wifi:station: ca:8f:b6:8b:60:8e join, AID=1, bgn, 20
-I (509342) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2
-ESP-ROM:esp32s3-20210327
-Build:Mar 27 2021
-rst:0x1 (POWERON),boot:0x28 (SPI_FAST_FLASH_BOOT)
-SPIWP:0xee
-mode:DIO, clock div:1
-load:0x3fce2820,len:0x1918
-load:0x403c8700,len:0x4
-load:0x403c8704,len:0xe5c
-load:0x403cb700,len:0x303c
-entry 0x403c893c
-I (27) boot: ESP-IDF v5.3.1-dirty 2nd stage bootloader
-I (27) boot: compile time Mar 25 2026 23:38:03
-I (27) boot: Multicore bootloader
-I (30) boot: chip revision: v0.2
-I (34) qio_mode: Enabling default flash chip QIO
-I (40) boot.esp32s3: Boot SPI Speed : 80MHz
-I (44) boot.esp32s3: SPI Mode       : QIO
-I (49) boot.esp32s3: SPI Flash Size : 8MB
-I (54) boot: Enabling RNG early entropy source...
-I (59) boot: Partition Table:
-I (63) boot: ## Label            Usage          Type ST Offset   Length
-I (70) boot:  0 nvs              WiFi data        01 02 00010000 00006000
-I (78) boot:  1 factory          factory app      00 00 00020000 0079e000
-I (85) boot: End of partition table
-I (89) esp_image: segment 0: paddr=00020020 vaddr=3c180020 size=b62bch (746172) map
-I (211) esp_image: segment 1: paddr=000d62e4 vaddr=3fc9fe00 size=0761ch ( 30236) load
-I (216) esp_image: segment 2: paddr=000dd908 vaddr=40378000 size=02710h ( 10000) load
-I (219) esp_image: segment 3: paddr=000e0020 vaddr=42000020 size=170670h (1508976) map
-I (454) esp_image: segment 4: paddr=00250698 vaddr=4037a710 size=15694h ( 87700) load
-I (481) boot: Loaded app from partition at offset 0x20000
-I (481) boot: Disabling RNG early entropy source...
-I (493) octal_psram: vendor id    : 0x0d (AP)
-I (493) octal_psram: dev id       : 0x02 (generation 3)
-I (493) octal_psram: density      : 0x03 (64 Mbit)
-I (498) octal_psram: good-die     : 0x01 (Pass)
-I (503) octal_psram: Latency      : 0x01 (Fixed)
-I (509) octal_psram: VCC          : 0x01 (3V)
-I (514) octal_psram: SRF          : 0x01 (Fast Refresh)
-I (520) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
-I (526) octal_psram: BurstLen     : 0x01 (32 Byte)
-I (531) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
-I (537) octal_psram: DriveStrength: 0x00 (1/1)
-I (543) MSPI Timing: PSRAM timing tuning index: 5
-I (548) esp_psram: Found 8MB PSRAM device
-I (552) esp_psram: Speed: 80MHz
-I (556) cpu_start: Multicore app
-I (845) esp_psram: SPI SRAM memory test OK
-I (854) cpu_start: Pro cpu start user code
-I (854) cpu_start: cpu freq: 240000000 Hz
-I (854) app_init: Application information:
-I (857) app_init: Project name:     model_in_flash_rodata
-I (863) app_init: App version:      13bd3d6
-I (868) app_init: Compile time:     Mar 25 2026 23:37:25
-I (874) app_init: ELF file SHA256:  12ff972ac...
-I (879) app_init: ESP-IDF:          v5.3.1-dirty
-I (884) efuse_init: Min chip rev:     v0.0
-I (889) efuse_init: Max chip rev:     v0.99
-I (894) efuse_init: Chip rev:         v0.2
-I (899) heap_init: Initializing. RAM available for dynamic allocation:
-I (906) heap_init: At 3FCAC2D8 len 0003D438 (245 KiB): RAM
-I (912) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
-I (919) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
-I (926) spi_flash: detected chip: boya
-I (930) spi_flash: flash io: qio
-W (934) spi_flash: Detected size(16384k) larger than the size in the binary image header(8192k). Using the size in the binary image header.
-W (948) i2c: This driver is an old driver, please migrate your application code to adapt `driver/i2c_master.h`
-I (958) sleep: Configure to isolate all GPIO pins in sleep state
-I (965) sleep: Enable automatic switching of GPIO sleep configuration
-I (972) main_task: Started on CPU0
-I (982) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
-I (982) main_task: Calling app_main()
-I (992) CAM_TCP: ========================================
-I (992) CAM_TCP: ESP32 Camera Server (WiFi AP + TCP)
-I (1002) CAM_TCP: ========================================
-I (1022) CAM_TCP: [Model] 加载模型...
-
-E (5982) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (5982) task_wdt:  - IDLE0 (CPU 0)
-E (5982) task_wdt: Tasks currently running:
-E (5982) task_wdt: CPU 0: main
-E (5982) task_wdt: CPU 1: IDLE1
-E (5982) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E6FF:0x3FCAF690 0x4213ECB7:0x3FCAF710 0x4205572A:0x3FCAF730 0x420564A0:0x3FCAF8B0 0x42013D21:0x3FCAF910 0x4202F6CA:0x3FCAF960 0x4200A9BA:0x3FCAFA20 0x4216F957:0x3FCAFAC0
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e6ff: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4202f6ca: dl::Model::test() at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:438
-0x4200a9ba: app_main at E:/AICleanBot/main/app_main.cpp:380
-0x4216f957: main_task at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/freertos/app_startup.c:208
-
-
-I (7442) dl::Model: Testing output output.
-I (7452) dl::Model: Test Pass!
-
-I (7452) dl::Model: model:main_graph, version:0
-I (7452) dl::Model: MODEL LOCATION IN FLASH RODATA
-I (7452) dl::Model: +----------------+--------------+-----------+--------------+
-I (7462) dl::Model: |                      memory summary                      |
-I (7472) dl::Model: +----------------+--------------+-----------+--------------+
-I (7482) dl::Model: |                | internal RAM | PSRAM     | FLASH        |
-I (7482) dl::Model: +----------------+--------------+-----------+--------------+
-I (7492) dl::Model: | fbs_model      |              |           | 419.97KB     |
-I (7502) dl::Model: |  -- parameter  |              |           |  -- 266.69KB |
-I (7512) dl::Model: +----------------+--------------+-----------+--------------+
-I (7522) dl::Model: | parameter_copy |              | 266.69KB  |              |
-I (7522) dl::Model: +----------------+--------------+-----------+--------------+
-I (7532) dl::Model: | variable       |              | 3904.00KB |              |
-I (7542) dl::Model: +----------------+--------------+-----------+--------------+
-I (7552) dl::Model: | others         | 10.02KB      | 6.60KB    |              |
-I (7562) dl::Model: +----------------+--------------+-----------+--------------+
-I (7562) dl::Model: | total          | 10.02KB      | 4177.29KB | 419.97KB     |
-I (7572) dl::Model: +----------------+--------------+-----------+--------------+
-
-E (10982) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (10982) task_wdt:  - IDLE0 (CPU 0)
-E (10982) task_wdt: Tasks currently running:
-E (10982) task_wdt: CPU 0: main
-E (10982) task_wdt: CPU 1: IDLE1
-E (10982) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x42055712:0x3FCAF6C0 0x420564A0:0x3FCAF840 0x42013D21:0x3FCAF8A0 0x4203ADC1:0x3FCAF8F0 0x42042073:0x3FCAF9C0 0x4200A9D5:0x3FCAFA20 0x4216F957:0x3FCAFAC0
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x42055712: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:589 (discriminator 1)
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788 (discriminator 1)
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4203adc1: dl::Model::get_module_info[abi:cxx11]() at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:523 (discriminator 1)
-0x42042073: dl::Model::profile(bool) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:752
-0x4200a9d5: app_main at E:/AICleanBot/main/app_main.cpp:381
-0x4216f957: main_task at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/freertos/app_startup.c:208
-
-
-I (13882) dl::Model: +------------------------------+------------------+-----------+
-I (13882) dl::Model: |                       module summary                        |
-I (13882) dl::Model: +------------------------------+------------------+-----------+
-I (13892) dl::Model: | name                         | type             | latency   |
-I (13902) dl::Model: +------------------------------+------------------+-----------+
-I (13912) dl::Model: | /enc1/conv/conv.0/Conv       | Conv             | 705716us  |
-I (13922) dl::Model: +------------------------------+------------------+-----------+
-I (13922) dl::Model: | /enc1/conv/conv.3/Conv       | Conv             | 713570us  |
-I (13932) dl::Model: +------------------------------+------------------+-----------+
-I (13942) dl::Model: | /pool/MaxPool                | MaxPool          | 15263us   |
-I (13952) dl::Model: +------------------------------+------------------+-----------+
-I (13962) dl::Model: | /enc2/conv/conv.0/Conv       | Conv             | 150804us  |
-I (13972) dl::Model: +------------------------------+------------------+-----------+
-I (13972) dl::Model: | /enc2/conv/conv.3/Conv       | Conv             | 231595us  |
-I (13982) dl::Model: +------------------------------+------------------+-----------+
-I (13992) dl::Model: | /pool_1/MaxPool              | MaxPool          | 7082us    |
-I (14002) dl::Model: +------------------------------+------------------+-----------+
-I (14012) dl::Model: | PPQ_Operation_4              | RequantizeLinear | 7699us    |
-I (14022) dl::Model: +------------------------------+------------------+-----------+
-I (14032) dl::Model: | /enc3/conv/conv.0/Conv       | Conv             | 35254us   |
-I (14032) dl::Model: +------------------------------+------------------+-----------+
-I (14042) dl::Model: | /enc3/conv/conv.3/Conv       | Conv             | 32195us   |
-I (14052) dl::Model: +------------------------------+------------------+-----------+
-I (14062) dl::Model: | /pool_2/MaxPool              | MaxPool          | 3353us    |
-I (14072) dl::Model: +------------------------------+------------------+-----------+
-I (14082) dl::Model: | PPQ_Operation_3              | RequantizeLinear | 3623us    |
-I (14082) dl::Model: +------------------------------+------------------+-----------+
-I (14092) dl::Model: | /bottleneck/conv/conv.0/Conv | Conv             | 17325us   |
-I (14102) dl::Model: +------------------------------+------------------+-----------+
-I (14112) dl::Model: | /bottleneck/conv/conv.3/Conv | Conv             | 832555us  |
-I (14122) dl::Model: +------------------------------+------------------+-----------+
-I (14132) dl::Model: | PPQ_Operation_0              | InsertZeros      | 12621us   |
-I (14132) dl::Model: +------------------------------+------------------+-----------+
-I (14142) dl::Model: | /up3/ConvTranspose           | Conv             | 31183us   |
-I (14152) dl::Model: +------------------------------+------------------+-----------+
-I (14162) dl::Model: | /Concat                      | Concat           | 12545us   |
-I (14172) dl::Model: +------------------------------+------------------+-----------+
-I (14182) dl::Model: | /dec3/conv/conv.0/Conv       | Conv             | 64768us   |
-I (14192) dl::Model: +------------------------------+------------------+-----------+
-I (14192) dl::Model: | /dec3/conv/conv.3/Conv       | Conv             | 32153us   |
-I (14202) dl::Model: +------------------------------+------------------+-----------+
-I (14212) dl::Model: | PPQ_Operation_1              | InsertZeros      | 26162us   |
-I (14222) dl::Model: +------------------------------+------------------+-----------+
-I (14232) dl::Model: | /up2/ConvTranspose           | Conv             | 143370us  |
-I (14242) dl::Model: +------------------------------+------------------+-----------+
-I (14242) dl::Model: | /Concat_1                    | Concat           | 27279us   |
-I (14252) dl::Model: +------------------------------+------------------+-----------+
-I (14262) dl::Model: | /dec2/conv/conv.0/Conv       | Conv             | 227873us  |
-I (14272) dl::Model: +------------------------------+------------------+-----------+
-I (14282) dl::Model: | /dec2/conv/conv.3/Conv       | Conv             | 272237us  |
-I (14292) dl::Model: +------------------------------+------------------+-----------+
-I (14292) dl::Model: | PPQ_Operation_2              | InsertZeros      | 53162us   |
-I (14302) dl::Model: +------------------------------+------------------+-----------+
-I (14312) dl::Model: | /up1/ConvTranspose           | Conv             | 700613us  |
-I (14322) dl::Model: +------------------------------+------------------+-----------+
-I (14332) dl::Model: | /Concat_2                    | Concat           | 80135us   |
-I (14342) dl::Model: +------------------------------+------------------+-----------+
-I (14352) dl::Model: | /dec1/conv/conv.0/Conv       | Conv             | 1103624us |
-I (14352) dl::Model: +------------------------------+------------------+-----------+
-I (14362) dl::Model: | /dec1/conv/conv.3/Conv       | Conv             | 711075us  |
-I (14372) dl::Model: +------------------------------+------------------+-----------+
-I (14382) dl::Model: | /out/Conv                    | Conv             | 37859us   |
-I (14392) dl::Model: +------------------------------+------------------+-----------+
-I (14402) dl::Model: | total                        |                  | 6292693us |
-I (14402) dl::Model: +------------------------------+------------------+-----------+
-
-I (14412) CAM_TCP: [Model] 输入数量: 1
-I (14422) CAM_TCP: [Model] 输入名称: input
-I (14422) CAM_TCP: [Model] 输出数量: 1
-I (14432) CAM_TCP: [Model] 输出名称: output
-I (14432) CAM_TCP: [Model] 模型加载成功
-I (14442) CAM_TCP: [Camera] 初始化摄像头...
-I (14442) s3 ll_cam: DMA Channel=0
-I (14452) cam_hal: cam init ok
-I (14452) sccb: pin_sda 4 pin_scl 5
-I (14452) sccb: sccb_i2c_port=1
-I (14472) camera: Camera PID=0x26 VER=0x42 MIDL=0x7f MIDH=0xa2
-I (14472) camera: Detected OV2640 camera
-I (14472) camera: Detected camera at address=0x30
-I (14552) cam_hal: PSRAM DMA mode disabled
-I (14552) s3 ll_cam: node_size: 3840, nodes_per_line: 1, lines_per_node: 12
-I (14552) s3 ll_cam: dma_half_buffer_min:  3840, dma_half_buffer:  7680, lines_per_half_buffer: 24, dma_buffer_size: 30720
-I (14562) cam_hal: buffer_size: 30720, half_buffer_size: 7680, node_buffer_size: 3840, node_cnt: 8, total_cnt: 5
-I (14572) cam_hal: Allocating 19200 Byte frame buffer in PSRAM
-I (14582) cam_hal: cam config ok
-I (14592) ov2640: Set PLL: clk_2x: 1, clk_div: 3, pclk_auto: 1, pclk_div: 8
-I (14652) CAM_TCP: [Camera] 初始化成功 (QQVGA 160x120 灰度)
-I (14652) pp: pp rom version: e7ae62f
-I (14652) net80211: net80211 rom version: e7ae62f
-I (14672) wifi:wifi driver task: 3fcbbba4, prio:23, stack:6656, core=0
-I (14672) wifi:wifi firmware version: ccaebfa
-I (14672) wifi:wifi certification version: v7.0
-I (14672) wifi:config NVS flash: enabled
-I (14682) wifi:config nano formating: disabled
-I (14682) wifi:Init data frame dynamic rx buffer num: 32
-I (14692) wifi:Init static rx mgmt buffer num: 5
-I (14692) wifi:Init management short buffer num: 32
-I (14702) wifi:Init static tx buffer num: 16
-I (14702) wifi:Init tx cache buffer num: 32
-I (14702) wifi:Init static tx FG buffer num: 2
-I (14712) wifi:Init static rx buffer size: 1600
-I (14712) wifi:Init static rx buffer num: 10
-I (14722) wifi:Init dynamic rx buffer num: 32
-I (14722) wifi_init: rx ba win: 6
-I (14722) wifi_init: accept mbox: 6
-I (14732) wifi_init: tcpip mbox: 32
-I (14732) wifi_init: udp mbox: 6
-I (14742) wifi_init: tcp mbox: 6
-I (14742) wifi_init: tcp tx win: 5760
-I (14742) wifi_init: tcp rx win: 5760
-I (14752) wifi_init: tcp mss: 1440
-I (14752) wifi_init: WiFi IRAM OP enabled
-I (14762) wifi_init: WiFi RX IRAM OP enabled
-I (14762) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10
-I (14812) wifi:mode : softAP (3c:0f:02:d7:57:01)
-I (14812) wifi:Total power save buffer number: 8
-I (14812) wifi:Init max length of beacon: 752/752
-I (14812) wifi:Init max length of beacon: 752/752
-I (14812) CAM_TCP: [WiFi] AP已启动 SSID=ESP32-CAM 密码=12345678 IP=192.168.4.1
-I (14822) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1
-I (14832) CAM_TCP: [TCP] Server已启动, 端口=5000
-I (14842) CAM_TCP: ========================================
-I (14842) CAM_TCP: 系统启动完成!
-I (14852) CAM_TCP: 热点: ESP32-CAM  密码: 12345678
-I (14852) CAM_TCP: TCP端口: 5000
-I (14862) CAM_TCP: ========================================
-I (14862) main_task: Returned from app_main()
-I (59532) wifi:new:<1,0>, old:<1,1>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0
-I (59532) wifi:station: ca:8f:b6:8b:60:8e join, AID=1, bgn, 20
-I (60752) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2
-I (63742) wifi:<ba-add>idx:2 (ifx:1, ca:8f:b6:8b:60:8e), tid:0, ssn:683, winSize:64
-I (66662) CAM_TCP: [TCP] 客户端已连接
-I (72802) CAM_TCP: [TCP] 收到命令: CAPTURE
-
-I (72802) CAM_TCP: [Camera] 采集成功: 160x120, 大小=19200 bytes, 耗时0.0ms
-I (72802) CAM_TCP: [Input] Tensor shape: 1 x 256 x 256 x 1
-I (72822) CAM_TCP: [Preprocess] 缩放耗时19.9ms
-E (77802) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (77802) task_wdt:  - IDLE0 (CPU 0)
-E (77802) task_wdt: Tasks currently running:
-E (77802) task_wdt: CPU 0: tcp_server
-E (77802) task_wdt: CPU 1: IDLE1
-E (77802) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E739:0x3FCE7E40 0x4213ECB7:0x3FCE7EC0 0x4205572A:0x3FCE7EE0 0x420564A0:0x3FCE8060 0x42013D21:0x3FCE80C0 0x4213DD3F:0x3FCE8110 0x4200A47D:0x3FCE8130
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e739: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4213dd3f: dl::Model::run(dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:224
-0x4200a47d: tcp_server_task(void*) at E:/AICleanBot/main/app_main.cpp:233
- (inlined by) tcp_server_task at E:/AICleanBot/main/app_main.cpp:353
-
-
-I (79152) CAM_TCP: [Inference] 模型推理耗时6325.5ms
-I (79152) CAM_TCP: [Output] Tensor shape: 1 x 256 x 256 x 1
-I (79152) CAM_TCP: [Output] Tensor size: 65536, dtype: 3
-I (79242) CAM_TCP: [Postprocess] 后处理耗时92.1ms
-I (79242) CAM_TCP: [Concat] 拼接耗时1.2ms
-I (79482) CAM_TCP: [TCP] 图像发送完成: 38400 bytes, 传输耗时237.2ms, 总耗时6679.0ms
---- Error: GetOverlappedResult failed (PermissionError(13, '鎷掔粷璁块棶銆?', None, 5))
---- Waiting for the device to reconnect.....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
-I (454) esp_image: segment 4: paddr=00250698 vaddr=4037a710 size=15694h ( 87700) load
-I (481) boot: Loaded app from partition at offset 0x20000
-I (481) boot: Disabling RNG early entropy source...
-I (493) octal_psram: vendor id    : 0x0d (AP)
-I (493) octal_psram: dev id       : 0x02 (generation 3)
-I (493) octal_psram: density      : 0x03 (64 Mbit)
-I (498) octal_psram: good-die     : 0x01 (Pass)
-I (503) octal_psram: Latency      : 0x01 (Fixed)
-I (509) octal_psram: VCC          : 0x01 (3V)
-I (514) octal_psram: SRF          : 0x01 (Fast Refresh)
-I (520) octal_psram: BurstType    : 0x01 (Hybrid Wrap)
-I (525) octal_psram: BurstLen     : 0x01 (32 Byte)
-I (531) octal_psram: Readlatency  : 0x02 (10 cycles@Fixed)
-I (537) octal_psram: DriveStrength: 0x00 (1/1)
-I (543) MSPI Timing: PSRAM timing tuning index: 5
-I (548) esp_psram: Found 8MB PSRAM device
-I (552) esp_psram: Speed: 80MHz
-I (556) cpu_start: Multicore app
-I (845) esp_psram: SPI SRAM memory test OK
-I (854) cpu_start: Pro cpu start user code
-I (854) cpu_start: cpu freq: 240000000 Hz
-I (854) app_init: Application information:
-I (857) app_init: Project name:     model_in_flash_rodata
-I (863) app_init: App version:      13bd3d6
-I (868) app_init: Compile time:     Mar 25 2026 23:37:25
-I (874) app_init: ELF file SHA256:  12ff972ac...
-I (879) app_init: ESP-IDF:          v5.3.1-dirty
-I (884) efuse_init: Min chip rev:     v0.0
-I (889) efuse_init: Max chip rev:     v0.99
-I (894) efuse_init: Chip rev:         v0.2
-I (899) heap_init: Initializing. RAM available for dynamic allocation:
-I (906) heap_init: At 3FCAC2D8 len 0003D438 (245 KiB): RAM
-I (912) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM
-I (918) esp_psram: Adding pool of 8192K of PSRAM memory to heap allocator
-I (926) spi_flash: detected chip: boya
-I (930) spi_flash: flash io: qio
-W (934) spi_flash: Detected size(16384k) larger than the size in the binary image header(8192k). Using the size in the binary image header.
-W (947) i2c: This driver is an old driver, please migrate your application code to adapt `driver/i2c_master.h`
-I (958) sleep: Configure to isolate all GPIO pins in sleep state
-I (965) sleep: Enable automatic switching of GPIO sleep configuration
-I (972) main_task: Started on CPU0
-I (982) esp_psram: Reserving pool of 32K of internal memory for DMA/internal allocations
-I (982) main_task: Calling app_main()
-I (992) CAM_TCP: ========================================
-I (992) CAM_TCP: ESP32 Camera Server (WiFi AP + TCP)
-I (1002) CAM_TCP: ========================================
-I (1022) CAM_TCP: [Model] 加载模型...
-
-E (5982) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (5982) task_wdt:  - IDLE0 (CPU 0)
-E (5982) task_wdt: Tasks currently running:
-E (5982) task_wdt: CPU 0: main
-E (5982) task_wdt: CPU 1: IDLE1
-E (5982) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E6FF:0x3FCAF690 0x4213ECB7:0x3FCAF710 0x4205572A:0x3FCAF730 0x420564A0:0x3FCAF8B0 0x42013D21:0x3FCAF910 0x4202F6CA:0x3FCAF960 0x4200A9BA:0x3FCAFA20 0x4216F957:0x3FCAFAC0
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e6ff: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4202f6ca: dl::Model::test() at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:438
-0x4200a9ba: app_main at E:/AICleanBot/main/app_main.cpp:380
-0x4216f957: main_task at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/freertos/app_startup.c:208
-
-
-I (7442) dl::Model: Testing output output.
-I (7452) dl::Model: Test Pass!
-
-I (7452) dl::Model: model:main_graph, version:0
-I (7452) dl::Model: MODEL LOCATION IN FLASH RODATA
-I (7452) dl::Model: +----------------+--------------+-----------+--------------+
-I (7462) dl::Model: |                      memory summary                      |
-I (7472) dl::Model: +----------------+--------------+-----------+--------------+
-I (7482) dl::Model: |                | internal RAM | PSRAM     | FLASH        |
-I (7482) dl::Model: +----------------+--------------+-----------+--------------+
-I (7492) dl::Model: | fbs_model      |              |           | 419.97KB     |
-I (7502) dl::Model: |  -- parameter  |              |           |  -- 266.69KB |
-I (7512) dl::Model: +----------------+--------------+-----------+--------------+
-I (7522) dl::Model: | parameter_copy |              | 266.69KB  |              |
-I (7522) dl::Model: +----------------+--------------+-----------+--------------+
-I (7532) dl::Model: | variable       |              | 3904.00KB |              |
-I (7542) dl::Model: +----------------+--------------+-----------+--------------+
-I (7552) dl::Model: | others         | 10.02KB      | 6.60KB    |              |
-I (7562) dl::Model: +----------------+--------------+-----------+--------------+
-I (7562) dl::Model: | total          | 10.02KB      | 4177.29KB | 419.97KB     |
-I (7572) dl::Model: +----------------+--------------+-----------+--------------+
-
-E (10982) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (10982) task_wdt:  - IDLE0 (CPU 0)
-E (10982) task_wdt: Tasks currently running:
-E (10982) task_wdt: CPU 0: main
-E (10982) task_wdt: CPU 1: IDLE1
-E (10982) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x42055712:0x3FCAF6C0 0x420564A0:0x3FCAF840 0x42013D21:0x3FCAF8A0 0x4203ADC1:0x3FCAF8F0 0x42042073:0x3FCAF9C0 0x4200A9D5:0x3FCAFA20 0x4216F957:0x3FCAFAC0
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x42055712: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:589 (discriminator 1)
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788 (discriminator 1)
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4203adc1: dl::Model::get_module_info[abi:cxx11]() at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:523 (discriminator 1)
-0x42042073: dl::Model::profile(bool) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:752
-0x4200a9d5: app_main at E:/AICleanBot/main/app_main.cpp:381
-0x4216f957: main_task at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/freertos/app_startup.c:208
-
-
-I (13882) dl::Model: +------------------------------+------------------+-----------+
-I (13882) dl::Model: |                       module summary                        |
-I (13882) dl::Model: +------------------------------+------------------+-----------+
-I (13892) dl::Model: | name                         | type             | latency   |
-I (13902) dl::Model: +------------------------------+------------------+-----------+
-I (13912) dl::Model: | /enc1/conv/conv.0/Conv       | Conv             | 705716us  |
-I (13922) dl::Model: +------------------------------+------------------+-----------+
-I (13922) dl::Model: | /enc1/conv/conv.3/Conv       | Conv             | 713570us  |
-I (13932) dl::Model: +------------------------------+------------------+-----------+
-I (13942) dl::Model: | /pool/MaxPool                | MaxPool          | 15263us   |
-I (13952) dl::Model: +------------------------------+------------------+-----------+
-I (13962) dl::Model: | /enc2/conv/conv.0/Conv       | Conv             | 150804us  |
-I (13972) dl::Model: +------------------------------+------------------+-----------+
-I (13972) dl::Model: | /enc2/conv/conv.3/Conv       | Conv             | 231595us  |
-I (13982) dl::Model: +------------------------------+------------------+-----------+
-I (13992) dl::Model: | /pool_1/MaxPool              | MaxPool          | 7082us    |
-I (14002) dl::Model: +------------------------------+------------------+-----------+
-I (14012) dl::Model: | PPQ_Operation_4              | RequantizeLinear | 7699us    |
-I (14022) dl::Model: +------------------------------+------------------+-----------+
-I (14032) dl::Model: | /enc3/conv/conv.0/Conv       | Conv             | 35254us   |
-I (14032) dl::Model: +------------------------------+------------------+-----------+
-I (14042) dl::Model: | /enc3/conv/conv.3/Conv       | Conv             | 32195us   |
-I (14052) dl::Model: +------------------------------+------------------+-----------+
-I (14062) dl::Model: | /pool_2/MaxPool              | MaxPool          | 3353us    |
-I (14072) dl::Model: +------------------------------+------------------+-----------+
-I (14082) dl::Model: | PPQ_Operation_3              | RequantizeLinear | 3623us    |
-I (14082) dl::Model: +------------------------------+------------------+-----------+
-I (14092) dl::Model: | /bottleneck/conv/conv.0/Conv | Conv             | 17325us   |
-I (14102) dl::Model: +------------------------------+------------------+-----------+
-I (14112) dl::Model: | /bottleneck/conv/conv.3/Conv | Conv             | 832555us  |
-I (14122) dl::Model: +------------------------------+------------------+-----------+
-I (14132) dl::Model: | PPQ_Operation_0              | InsertZeros      | 12621us   |
-I (14132) dl::Model: +------------------------------+------------------+-----------+
-I (14142) dl::Model: | /up3/ConvTranspose           | Conv             | 31183us   |
-I (14152) dl::Model: +------------------------------+------------------+-----------+
-I (14162) dl::Model: | /Concat                      | Concat           | 12545us   |
-I (14172) dl::Model: +------------------------------+------------------+-----------+
-I (14182) dl::Model: | /dec3/conv/conv.0/Conv       | Conv             | 64768us   |
-I (14192) dl::Model: +------------------------------+------------------+-----------+
-I (14192) dl::Model: | /dec3/conv/conv.3/Conv       | Conv             | 32153us   |
-I (14202) dl::Model: +------------------------------+------------------+-----------+
-I (14212) dl::Model: | PPQ_Operation_1              | InsertZeros      | 26162us   |
-I (14222) dl::Model: +------------------------------+------------------+-----------+
-I (14232) dl::Model: | /up2/ConvTranspose           | Conv             | 143370us  |
-I (14242) dl::Model: +------------------------------+------------------+-----------+
-I (14242) dl::Model: | /Concat_1                    | Concat           | 27279us   |
-I (14252) dl::Model: +------------------------------+------------------+-----------+
-I (14262) dl::Model: | /dec2/conv/conv.0/Conv       | Conv             | 227873us  |
-I (14272) dl::Model: +------------------------------+------------------+-----------+
-I (14282) dl::Model: | /dec2/conv/conv.3/Conv       | Conv             | 272237us  |
-I (14292) dl::Model: +------------------------------+------------------+-----------+
-I (14292) dl::Model: | PPQ_Operation_2              | InsertZeros      | 53162us   |
-I (14302) dl::Model: +------------------------------+------------------+-----------+
-I (14312) dl::Model: | /up1/ConvTranspose           | Conv             | 700613us  |
-I (14322) dl::Model: +------------------------------+------------------+-----------+
-I (14332) dl::Model: | /Concat_2                    | Concat           | 80135us   |
-I (14342) dl::Model: +------------------------------+------------------+-----------+
-I (14352) dl::Model: | /dec1/conv/conv.0/Conv       | Conv             | 1103624us |
-I (14352) dl::Model: +------------------------------+------------------+-----------+
-I (14362) dl::Model: | /dec1/conv/conv.3/Conv       | Conv             | 711075us  |
-I (14372) dl::Model: +------------------------------+------------------+-----------+
-I (14382) dl::Model: | /out/Conv                    | Conv             | 37859us   |
-I (14392) dl::Model: +------------------------------+------------------+-----------+
-I (14402) dl::Model: | total                        |                  | 6292693us |
-I (14402) dl::Model: +------------------------------+------------------+-----------+
-
-I (14412) CAM_TCP: [Model] 输入数量: 1
-I (14422) CAM_TCP: [Model] 输入名称: input
-I (14422) CAM_TCP: [Model] 输出数量: 1
-I (14432) CAM_TCP: [Model] 输出名称: output
-I (14432) CAM_TCP: [Model] 模型加载成功
-I (14442) CAM_TCP: [Camera] 初始化摄像头...
-I (14442) s3 ll_cam: DMA Channel=0
-I (14452) cam_hal: cam init ok
-I (14452) sccb: pin_sda 4 pin_scl 5
-I (14452) sccb: sccb_i2c_port=1
-I (14472) camera: Camera PID=0x26 VER=0x42 MIDL=0x7f MIDH=0xa2
-I (14472) camera: Detected OV2640 camera
-I (14472) camera: Detected camera at address=0x30
-I (14552) cam_hal: PSRAM DMA mode disabled
-I (14552) s3 ll_cam: node_size: 3840, nodes_per_line: 1, lines_per_node: 12
-I (14552) s3 ll_cam: dma_half_buffer_min:  3840, dma_half_buffer:  7680, lines_per_half_buffer: 24, dma_buffer_size: 30720
-I (14562) cam_hal: buffer_size: 30720, half_buffer_size: 7680, node_buffer_size: 3840, node_cnt: 8, total_cnt: 5
-I (14572) cam_hal: Allocating 19200 Byte frame buffer in PSRAM
-I (14582) cam_hal: cam config ok
-I (14592) ov2640: Set PLL: clk_2x: 1, clk_div: 3, pclk_auto: 1, pclk_div: 8
-I (14652) CAM_TCP: [Camera] 初始化成功 (QQVGA 160x120 灰度)
-I (14652) pp: pp rom version: e7ae62f
-I (14652) net80211: net80211 rom version: e7ae62f
-I (14672) wifi:wifi driver task: 3fcbbba4, prio:23, stack:6656, core=0
-I (14672) wifi:wifi firmware version: ccaebfa
-I (14672) wifi:wifi certification version: v7.0
-I (14672) wifi:config NVS flash: enabled
-I (14682) wifi:config nano formating: disabled
-I (14682) wifi:Init data frame dynamic rx buffer num: 32
-I (14692) wifi:Init static rx mgmt buffer num: 5
-I (14692) wifi:Init management short buffer num: 32
-I (14702) wifi:Init static tx buffer num: 16
-I (14702) wifi:Init tx cache buffer num: 32
-I (14702) wifi:Init static tx FG buffer num: 2
-I (14712) wifi:Init static rx buffer size: 1600
-I (14712) wifi:Init static rx buffer num: 10
-I (14722) wifi:Init dynamic rx buffer num: 32
-I (14722) wifi_init: rx ba win: 6
-I (14722) wifi_init: accept mbox: 6
-I (14732) wifi_init: tcpip mbox: 32
-I (14732) wifi_init: udp mbox: 6
-I (14742) wifi_init: tcp mbox: 6
-I (14742) wifi_init: tcp tx win: 5760
-I (14742) wifi_init: tcp rx win: 5760
-I (14752) wifi_init: tcp mss: 1440
-I (14752) wifi_init: WiFi IRAM OP enabled
-I (14762) wifi_init: WiFi RX IRAM OP enabled
-I (14762) phy_init: phy_version 680,a6008b2,Jun  4 2024,16:41:10
-W (14822) phy_init: saving new calibration data because of checksum failure, mode(0)
-I (14872) wifi:mode : softAP (3c:0f:02:d7:57:01)
-I (14872) wifi:Total power save buffer number: 8
-I (14872) wifi:Init max length of beacon: 752/752
-I (14872) wifi:Init max length of beacon: 752/752
-I (14882) CAM_TCP: [WiFi] AP已启动 SSID=ESP32-CAM 密码=12345678 IP=192.168.4.1
-I (14882) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1
-I (14902) CAM_TCP: [TCP] Server已启动, 端口=5000
-I (14902) CAM_TCP: ========================================
-I (14912) CAM_TCP: 系统启动完成!
-I (14912) CAM_TCP: 热点: ESP32-CAM  密码: 12345678
-I (14922) CAM_TCP: TCP端口: 5000
-I (14922) CAM_TCP: ========================================
-I (14932) main_task: Returned from app_main()
-I (20752) wifi:new:<1,0>, old:<1,1>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0
-I (20752) wifi:station: ca:8f:b6:8b:60:8e join, AID=1, bgn, 20
-I (22062) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2
-I (23852) wifi:<ba-add>idx:2 (ifx:1, ca:8f:b6:8b:60:8e), tid:0, ssn:1359, winSize:64
-I (26012) wifi:<ba-add>idx:3 (ifx:1, ca:8f:b6:8b:60:8e), tid:2, ssn:1244, winSize:64
-I (27462) CAM_TCP: [TCP] 客户端已连接
-I (31862) CAM_TCP: [TCP] 收到命令: CAPTURE
-
-I (31862) CAM_TCP: [Camera] 采集成功: 160x120, 大小=19200 bytes, 耗时0.0ms
-I (31872) CAM_TCP: [Input] Tensor shape: 1 x 256 x 256 x 1
-I (31892) CAM_TCP: [Preprocess] 缩放耗时20.1ms
-E (36862) task_wdt: Task watchdog got triggered. The following tasks/users did not reset the watchdog in time:
-E (36862) task_wdt:  - IDLE0 (CPU 0)
-E (36862) task_wdt: Tasks currently running:
-E (36862) task_wdt: CPU 0: tcp_server
-E (36862) task_wdt: CPU 1: IDLE1
-E (36862) task_wdt: Print CPU 0 (current core) backtrace
-
-
-Backtrace: 0x420A005A:0x3FCA22D0 0x4037BB35:0x3FCA2300 0x4207E823:0x3FCE7E50 0x4213ECB7:0x3FCE7ED0 0x4205572A:0x3FCE7EF0 0x420564A0:0x3FCE8070 0x42013D21:0x3FCE80D0 0x4213DD3F:0x3FCE8120 0x4200A47D:0x3FCE8140
---- 0x420a005a: task_wdt_timeout_handling at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:434
- (inlined by) task_wdt_isr at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/esp_system/task_wdt/task_wdt.c:507
-0x4037bb35: _xt_lowint1 at E:/aishuai/Espressif/frameworks/esp-idf-v5.3.1/components/xtensa/xtensa_vectors.S:1240
-0x4207e823: tie728_s8_conv2d_3_3_c_unaligned_n_activation_loop_no_preload_bias at E:/aishuai/esp-dl/esp-dl/dl/base/isa/tie728/dl_tie728_s8_conv2d.S:1830
-0x4213ecb7: void std::__invoke_impl<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(std::__invoke_other, void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:61
- (inlined by) std::enable_if<is_invocable_r_v<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>, void>::type std::__invoke_r<void, void (*&)(signed char*, signed char*, void*), signed char*, signed char*, void*>(void (*&)(signed char*, signed char*, void*), signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/invoke.h:111
- (inlined by) std::_Function_handler<void (signed char*, signed char*, void*), void (*)(signed char*, signed char*, void*)>::_M_invoke(std::_Any_data const&, signed char*&&, signed char*&&, void*&&) at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:290
-0x4205572a: std::function<void (signed char*, signed char*, void*)>::operator()(signed char*, signed char*, void*) const at E:/aishuai/Espressif/tools/xtensa-esp-elf/esp-13.2.0_20240530/xtensa-esp-elf/xtensa-esp-elf/include/c++/13.2.0/bits/std_function.h:591
- (inlined by) void dl::base::conv_operation_shell<signed char, long>(dl::base::ArgsType<signed char>&, std::function<void (signed char*, signed char*, void*)>, std::function<void (signed char*, signed char*, void*)>, void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(long*, signed char*, dl::base::ArgsType<signed char> const&), void (*)(signed char*, long*, dl::base::ArgsType<signed char> const&)) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base.hpp:788
-0x420564a0: void dl::base::conv2d<signed char, long, long>(void*) at E:/aishuai/esp-dl/esp-dl/dl/base/dl_base_conv2d.cpp:1343 (discriminator 2)
-0x42013d21: dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:108
- (inlined by) dl::module::Conv::forward_args(void*) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:104
- (inlined by) void dl::module::Conv::forward_template<signed char>(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:157
- (inlined by) dl::module::Conv::forward(dl::ModelContext*, dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/module/include/dl_module_conv.hpp:126
-0x4213dd3f: dl::Model::run(dl::runtime_mode_t) at E:/aishuai/esp-dl/esp-dl/dl/model/src/dl_model_base.cpp:224
-0x4200a47d: tcp_server_task(void*) at E:/AICleanBot/main/app_main.cpp:233
- (inlined by) tcp_server_task at E:/AICleanBot/main/app_main.cpp:353
-
-
-I (38222) CAM_TCP: [Inference] 模型推理耗时6337.1ms
-I (38232) CAM_TCP: [Output] Tensor shape: 1 x 256 x 256 x 1
-I (38232) CAM_TCP: [Output] Tensor size: 65536, dtype: 3
-I (38322) CAM_TCP: [Postprocess] 后处理耗时92.4ms
-I (38322) CAM_TCP: [Concat] 拼接耗时1.2ms
-I (38592) CAM_TCP: [TCP] 图像发送完成: 38400 bytes, 传输耗时268.3ms, 总耗时6722.1ms
-
+小程序：
+[Collect]发送命令:UDP_HELLO:5001
+[Collect] 发送HELLO_UDP到ESP32
+[Collect] TCP消息:UDP_OK
+[Collect]UDP就绪，发送STREAM
+[Collect]发送命令:STREAM
+pages/index/index: onRouteDone have been invoked
+App route:path: pages/index/indexopenType: navigateBackrenderer: webview
+componentFramework: exparser
+pages/collect/collect: onUnload have been invoked
 
 
 

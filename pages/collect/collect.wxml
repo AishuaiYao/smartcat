@@ -10,15 +10,5 @@
     <text class="placeholder" wx:else>等待图像...</text>
   </view>
 
-  <!-- 控制区 -->
-  <view class="control-area">
-    <view class="control-row">
-      <button class="ctrl-btn forward" bindtouchstart="onForward" bindtouchend="onStop">前进</button>
-    </view>
-    <view class="control-row">
-      <button class="ctrl-btn left" bindtouchstart="onLeft" bindtouchend="onStop">左转</button>
-      <button class="ctrl-btn backward" bindtouchstart="onBackward" bindtouchend="onStop">后退</button>
-      <button class="ctrl-btn right" bindtouchstart="onRight" bindtouchend="onStop">右转</button>
-    </view>
-  </view>
+
 </view>
