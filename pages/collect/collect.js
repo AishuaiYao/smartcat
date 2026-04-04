@@ -276,4 +276,24 @@ Page({
     })
   },
 
+  onForward() {
+    this.sendCommand('MOTOR_FORWARD')
+  },
+
+  onBackward() {
+    this.sendCommand('MOTOR_BACKWARD')
+  },
+
+  onLeft() {
+    this.sendCommand('MOTOR_LEFT')
+  },
+
+  onRight() {
+    this.sendCommand('MOTOR_RIGHT')
+  },
+
+  onStop() {
+    this.sendCommand('MOTOR_STOP')
+  }
+
 })
