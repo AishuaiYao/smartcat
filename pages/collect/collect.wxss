@@ -47,26 +47,20 @@ page {
   font-size: 28rpx;
 }
 
-/* 左侧控制区 - 上下 */
+/* 左侧控制区 - 左转 */
 .control-left {
   position: absolute;
   left: 40rpx;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 40rpx;
 }
 
-/* 右侧控制区 - 左右 */
+/* 右侧控制区 - 右转 */
 .control-right {
   position: absolute;
   right: 40rpx;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  flex-direction: row;
-  gap: 40rpx;
 }
 
 /* 控制按钮 - 半透明带粗箭头 */
@@ -85,28 +79,8 @@ page {
   background: rgba(255, 255, 255, 0.6);
 }
 
-/* 粗箭头 - 上 */
-.control-left .ctrl-btn:first-child::before {
-  content: '';
-  width: 0;
-  height: 0;
-  border-left: 30rpx solid transparent;
-  border-right: 30rpx solid transparent;
-  border-bottom: 50rpx solid #fff;
-}
-
-/* 粗箭头 - 下 */
-.control-left .ctrl-btn:last-child::before {
-  content: '';
-  width: 0;
-  height: 0;
-  border-left: 30rpx solid transparent;
-  border-right: 30rpx solid transparent;
-  border-top: 50rpx solid #fff;
-}
-
-/* 粗箭头 - 左 */
-.control-right .ctrl-btn:first-child::before {
+/* 左转箭头 */
+.control-left .ctrl-btn::before {
   content: '';
   width: 0;
   height: 0;
@@ -115,8 +89,8 @@ page {
   border-right: 50rpx solid #fff;
 }
 
-/* 粗箭头 - 右 */
-.control-right .ctrl-btn:last-child::before {
+/* 右转箭头 */
+.control-right .ctrl-btn::before {
   content: '';
   width: 0;
   height: 0;

@@ -283,16 +283,6 @@ Page({
     })
   },
 
-  onForward() {
-    if (this.data.debugMode) return
-    this.sendCommand('MOTOR_FORWARD')
-  },
-
-  onBackward() {
-    if (this.data.debugMode) return
-    this.sendCommand('MOTOR_BACKWARD')
-  },
-
   onLeft() {
     if (this.data.debugMode) return
     this.sendCommand('MOTOR_LEFT')

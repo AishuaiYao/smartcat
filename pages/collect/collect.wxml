@@ -10,15 +10,13 @@
     <text class="placeholder" wx:else>等待图像...</text>
   </view>
 
-  <!-- 左侧控制 - 上下 -->
+  <!-- 左侧控制 - 左转 -->
   <view class="control-left">
-    <view class="ctrl-btn" bindtouchstart="onForward" bindtouchend="onStop"></view>
-    <view class="ctrl-btn" bindtouchstart="onBackward" bindtouchend="onStop"></view>
+    <view class="ctrl-btn" bindtouchstart="onLeft" bindtouchend="onStop"></view>
   </view>
 
-  <!-- 右侧控制 - 左右 -->
+  <!-- 右侧控制 - 右转 -->
   <view class="control-right">
-    <view class="ctrl-btn" bindtouchstart="onLeft" bindtouchend="onStop"></view>
     <view class="ctrl-btn" bindtouchstart="onRight" bindtouchend="onStop"></view>
   </view>
 
