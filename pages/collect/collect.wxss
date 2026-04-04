@@ -1,11 +1,20 @@
+page {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
 .container {
+  position: fixed;
+  top: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100vw;
   height: 100vh;
   background: #1a1a1a;
-  position: relative;
+  overflow: hidden;
 }
 
 .status-bar {
@@ -29,8 +38,8 @@
 
 .preview {
   width: 480rpx;
-  border: 4rpx solid #333;
-  border-radius: 8rpx;
+  border: none;
+  border-radius: 0;
 }
 
 .placeholder {
