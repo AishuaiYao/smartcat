@@ -50,7 +50,7 @@ page {
 /* 左侧控制区 - 左转 */
 .control-left {
   position: absolute;
-  left: 40rpx;
+  left: 100rpx;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -58,7 +58,7 @@ page {
 /* 右侧控制区 - 右转 */
 .control-right {
   position: absolute;
-  right: 40rpx;
+  right: 100rpx;
   top: 50%;
   transform: translateY(-50%);
 }
