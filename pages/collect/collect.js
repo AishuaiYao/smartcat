@@ -2,8 +2,12 @@ Page({
   data: {
     imageData: null,
     frameCount: 0,
-    streaming: false
+    streaming: false,
+    fps: 0
   },
+
+  // 帧率计算
+  lastFrameTime: 0,
 
   tcpSocket: null,
   udpSocket: null,
@@ -153,6 +157,15 @@ Page({
       // 组装完整帧
       const grayData = this.assembleFrame()
       if (grayData) {
+        // 计算帧率
+        const now = Date.now()
+        if (this.lastFrameTime > 0) {
+          const delta = now - this.lastFrameTime
+          const fps = delta > 0 ? Math.round(1000 / delta) : 0
+          this.setData({ fps })
+        }
+        this.lastFrameTime = now
+        
         // 更新帧计数
         const frameCount = this.data.frameCount + 1
         this.setData({ frameCount })
@@ -160,7 +173,7 @@ Page({
         // 每10帧打印一次状态
         if (frameCount % 10 === 0) {
           const assembleTime = Date.now() - this.frameBuffer.startTime
-          console.log('[UDP] 帧' + frameCount + ': 组装完成, 耗时' + assembleTime + 'ms')
+          console.log('[UDP] 帧' + frameCount + ': 组装完成, 耗时' + assembleTime + 'ms, FPS=' + this.data.fps)
         }
         
         // 处理图像

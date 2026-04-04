@@ -1,14 +1,13 @@
 <view class="container">
-  <!-- 状态栏 -->
+  <!-- 状态栏 - 左上角 -->
   <view class="status-bar">
-    <text>{{streaming ? '采集中 第' + frameCount + '帧' : '连接中...'}}</text>
+    <text>{{streaming ? '采集中 帧率' + fps : '连接中...'}}</text>
   </view>
 
-  <!-- 图像区 -->
+  <!-- 图像区 - 居中 -->
   <view class="image-area">
     <image class="preview" src="{{imageData}}" mode="aspectFit" wx:if="{{imageData}}"></image>
     <text class="placeholder" wx:else>等待图像...</text>
   </view>
-
 
 </view>

@@ -1,34 +1,34 @@
 .container {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 100vw;
   height: 100vh;
-  padding: 20rpx;
-  box-sizing: border-box;
   background: #1a1a1a;
+  position: relative;
 }
 
 .status-bar {
-  width: 100%;
-  padding: 20rpx;
-  text-align: center;
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+  padding: 10rpx 16rpx;
   color: #4CAF50;
-  font-size: 32rpx;
+  font-size: 16rpx;
   font-weight: bold;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8rpx;
+  z-index: 10;
 }
 
 .image-area {
-  width: 100%;
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20rpx 0;
 }
 
 .preview {
-  width: 100%;
-  max-width: 480rpx;
+  width: 480rpx;
   border: 4rpx solid #333;
   border-radius: 8rpx;
 }
