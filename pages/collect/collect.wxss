@@ -17,19 +17,6 @@ page {
   overflow: hidden;
 }
 
-.status-bar {
-  position: absolute;
-  top: 20rpx;
-  left: 20rpx;
-  padding: 10rpx 16rpx;
-  color: #4CAF50;
-  font-size: 16rpx;
-  font-weight: bold;
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 8rpx;
-  z-index: 10;
-}
-
 /* 顶部控制栏 */
 .top-control {
   position: absolute;
@@ -40,6 +27,15 @@ page {
   align-items: center;
   gap: 16rpx;
   z-index: 10;
+}
+
+.status-bar {
+  padding: 6rpx 10rpx;
+  color: #4CAF50;
+  font-size: 12rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4rpx;
+  font-family: monospace;
 }
 
 .start-btn {

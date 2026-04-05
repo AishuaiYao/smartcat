@@ -6,7 +6,8 @@ Page({
     fps: 0,
     debugMode: false,
     running: false,
-    speed: 5
+    speed: 5,
+    savedCount: 0
   },
 
   // 帧率计算
@@ -23,6 +24,9 @@ Page({
   frameSize: 19200,          // 160x120 灰度图
 
   onLoad(options) {
+    // 请求相册权限
+    this.requestAlbumAuth()
+    
     // 调试模式
     if (options.debug === '1') {
       this.setData({ debugMode: true, streaming: true })
@@ -30,6 +34,18 @@ Page({
       return
     }
     this.connectDevice()
+  },
+
+  requestAlbumAuth() {
+    wx.authorize({
+      scope: 'scope.writePhotosAlbum',
+      success: () => {
+        console.log('[Auth] 相册权限已授权')
+      },
+      fail: () => {
+        console.log('[Auth] 相册权限未授权')
+      }
+    })
   },
 
   onUnload() {
@@ -280,6 +296,36 @@ Page({
         // 每10帧打印一次处理耗时
         if (frameCount % 10 === 0) {
           console.log('[Render] 帧' + frameCount + ': 渲染完成, 耗时' + processTime + 'ms')
+        }
+        
+        // 每10帧保存一幅图像
+        if (frameCount % 10 === 1 && !this.data.debugMode) {
+          this.saveImage(res.tempFilePath)
+        }
+      }
+    })
+  },
+
+  saveImage(tempFilePath) {
+    wx.saveImageToPhotosAlbum({
+      filePath: tempFilePath,
+      success: () => {
+        const savedCount = this.data.savedCount + 1
+        this.setData({ savedCount })
+        console.log('[Save] 已保存第' + savedCount + '幅图像到相册')
+      },
+      fail: (err) => {
+        console.log('[Save] 保存失败:', err)
+        if (err.errMsg.includes('auth deny')) {
+          wx.showModal({
+            title: '提示',
+            content: '需要授权保存图片到相册',
+            success: (res) => {
+              if (res.confirm) {
+                wx.openSetting()
+              }
+            }
+          })
         }
       }
     })

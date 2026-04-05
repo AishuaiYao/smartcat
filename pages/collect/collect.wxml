@@ -1,11 +1,9 @@
 <view class="container">
-  <!-- 状态栏 - 左上角 -->
-  <view class="status-bar">
-    <text>{{streaming ? '采集中 帧率' + fps : '连接中...'}}</text>
-  </view>
-
   <!-- 顶部控制栏 -->
   <view class="top-control">
+    <view class="status-bar">
+      <text>{{streaming ? 'FPS:' + fps + ' | Saved:' + savedCount : 'Connecting...'}}</text>
+    </view>
     <view class="start-btn {{running ? 'running' : ''}}" bindtap="onStartStop">
       <text>{{running ? '停止' : '启动'}}</text>
     </view>
