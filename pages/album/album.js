@@ -23,10 +23,15 @@ Page({
   },
 
   onShow() {
-    this.loadImages()
+    // 保存当前选中的路径
+    const selectedPaths = this.data.images
+      .filter(img => img.selected)
+      .map(img => img.path)
+    
+    this.loadImages(selectedPaths)
   },
 
-  loadImages() {
+  loadImages(selectedPaths = []) {
     let images = wx.getStorageSync('savedImages') || []
     
     if (this.data.debugMode && images.length === 0) {
@@ -36,13 +41,14 @@ Page({
 
     const processedImages = images.map(img => ({
       ...img,
-      selected: false
+      selected: selectedPaths.includes(img.path)
     }))
     const uploadedCount = images.filter(img => img.uploaded).length
+    const selectedCount = processedImages.filter(img => img.selected).length
 
     this.setData({
       images: processedImages,
-      selectedCount: 0,
+      selectedCount,
       uploadedCount,
       storageSize: images.length > 0 ? '计算中...' : '0KB'
     })
