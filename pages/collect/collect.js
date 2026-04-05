@@ -31,17 +31,13 @@ Page({
       return
     }
     
-    app.addMessageCallback(this.onMessage.bind(this))
-    app.addCloseCallback(this.onClose.bind(this))
-    app.addErrorCallback(this.onError.bind(this))
+    this.registerCallbacks()
     this.setupUDP()
   },
 
   onUnload() {
     console.log('[Collect] 页面卸载')
-    app.removeMessageCallback(this.onMessage)
-    app.removeCloseCallback(this.onClose)
-    app.removeErrorCallback(this.onError)
+    this.removeCallbacks()
     
     if (this.udpSocket) {
       app.sendCommand('STOP')
@@ -49,6 +45,21 @@ Page({
       this.udpSocket = null
     }
     this.frameBuffer = null
+  },
+
+  registerCallbacks() {
+    this.onMessageBound = this.onMessage.bind(this)
+    this.onCloseBound = this.onClose.bind(this)
+    this.onErrorBound = this.onError.bind(this)
+    app.addMessageCallback(this.onMessageBound)
+    app.addCloseCallback(this.onCloseBound)
+    app.addErrorCallback(this.onErrorBound)
+  },
+
+  removeCallbacks() {
+    app.removeMessageCallback(this.onMessageBound)
+    app.removeCloseCallback(this.onCloseBound)
+    app.removeErrorCallback(this.onErrorBound)
   },
 
   onMessage(res) {

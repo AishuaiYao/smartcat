@@ -37,6 +37,7 @@ Page({
     this.log('页面加载: ' + deviceName + (debugMode ? ' [调试模式]' : ''))
     this.loadSavedImages()
     if (!debugMode) {
+      this.registerCallbacks()
       this.connectDevice()
     } else {
       this.setData({ connected: true, connecting: false })
@@ -47,13 +48,14 @@ Page({
     this.log('页面显示')
     this.setData({ connected: app.globalData.connected })
     this.loadSavedImages()
+    if (!this.data.debugMode && !this.onMessageBound) {
+      this.registerCallbacks()
+    }
   },
 
   onUnload() {
     this.log('页面卸载')
-    app.removeMessageCallback(this.onMessage)
-    app.removeCloseCallback(this.onClose)
-    app.removeErrorCallback(this.onError)
+    this.removeCallbacks()
     app.disconnectTCP()
   },
 
@@ -65,10 +67,6 @@ Page({
 
   connectDevice() {
     this.log('>>> 开始连接 ' + app.globalData.esp32IP + ':' + app.globalData.esp32Port)
-
-    app.addMessageCallback(this.onMessage.bind(this))
-    app.addCloseCallback(this.onClose.bind(this))
-    app.addErrorCallback(this.onError.bind(this))
 
     app.connectTCP((success) => {
       if (!success) {
@@ -193,7 +191,7 @@ Page({
       success: (res) => {
         this.log('<<< 导出成功: ' + res.tempFilePath)
         this.setData({ imageData: res.tempFilePath })
-        this.saveImageToLocal(res.tempFilePath)
+        wx.showToast({ title: '采集成功', icon: 'success' })
       },
       fail: (err) => {
         this.log('!!! 导出失败: ' + JSON.stringify(err))
@@ -201,27 +199,19 @@ Page({
     })
   },
 
-  saveImageToLocal(tempFilePath) {
-    this.log('>>> 保存图片: ' + tempFilePath)
-    wx.saveFile({
-      tempFilePath,
-      success: (res) => {
-        this.log('<<< 保存成功: ' + res.savedFilePath)
-        let images = wx.getStorageSync('savedImages') || []
-        images.unshift({
-          path: res.savedFilePath,
-          time: new Date().toLocaleString(),
-          uploaded: false
-        })
-        wx.setStorageSync('savedImages', images)
-        this.log('本地图片总数: ' + images.length)
-        this.setData({ savedImages: images, imageCount: images.length })
-        wx.showToast({ title: '已保存', icon: 'success' })
-      },
-      fail: (err) => {
-        this.log('!!! 保存失败: ' + JSON.stringify(err))
-      }
-    })
+  removeCallbacks() {
+    app.removeMessageCallback(this.onMessageBound)
+    app.removeCloseCallback(this.onCloseBound)
+    app.removeErrorCallback(this.onErrorBound)
+  },
+
+  registerCallbacks() {
+    this.onMessageBound = this.onMessage.bind(this)
+    this.onCloseBound = this.onClose.bind(this)
+    this.onErrorBound = this.onError.bind(this)
+    app.addMessageCallback(this.onMessageBound)
+    app.addCloseCallback(this.onCloseBound)
+    app.addErrorCallback(this.onErrorBound)
   },
 
   goToAlbum() {
