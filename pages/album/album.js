@@ -348,7 +348,10 @@ Page({
 
   // 云端功能
   openCloud() {
+    // 显示加载状态
     this.setData({ showCloud: true, cloudLoading: true, cloudImages: [], cloudSelectedCount: 0 })
+    
+    // 直接尝试加载云端数据
     this.loadCloudImages()
   },
 
@@ -379,8 +382,19 @@ Page({
         },
         fail: (err) => {
           console.log('加载云端图片失败:', err)
-          this.setData({ cloudLoading: false })
-          wx.showToast({ title: '加载失败', icon: 'none' })
+          this.setData({ showCloud: false, cloudLoading: false })
+          
+          // 根据错误判断是否网络问题
+          const errMsg = err.errMsg || ''
+          if (errMsg.includes('timeout') || errMsg.includes('network') || errMsg.includes('request:fail')) {
+            wx.showModal({
+              title: '网络提示',
+              content: '当前网络无法访问云端，请检查是否连接到家庭WiFi或移动数据网络',
+              showCancel: false
+            })
+          } else {
+            wx.showToast({ title: '加载失败', icon: 'none' })
+          }
         }
       })
   },
@@ -425,25 +439,49 @@ Page({
       content: `确定从云端删除 ${this.data.cloudSelectedCount} 张图片？`,
       success: (res) => {
         if (res.confirm) {
-          const selectedIds = this.data.cloudImages
-            .filter(img => img.selected)
-            .map(img => img._id)
-          
-          let deletedCount = 0
+          const selectedImages = this.data.cloudImages.filter(img => img.selected)
+          let successCount = 0
+          let failCount = 0
+          const total = selectedImages.length
           const db = wx.cloud.database()
 
-          selectedIds.forEach(id => {
-            db.collection('dataset').doc(id).remove({
+          wx.showLoading({ title: '删除中...', mask: true })
+
+          selectedImages.forEach((img) => {
+            db.collection('dataset').doc(img._id).remove({
               success: () => {
-                deletedCount++
-                if (deletedCount === selectedIds.length) {
-                  const cloudImages = this.data.cloudImages.filter(img => !img.selected)
+                successCount++
+                if (successCount + failCount === total) {
+                  wx.hideLoading()
+                  if (failCount > 0) {
+                    wx.showModal({
+                      title: '删除完成',
+                      content: `成功: ${successCount} 张\n失败: ${failCount} 张\n\n失败可能原因：数据库权限不足，请在云开发控制台设置 dataset 集合权限为"所有用户可读写"`,
+                      showCancel: false
+                    })
+                  } else {
+                    wx.showToast({ title: '删除成功', icon: 'success' })
+                  }
+                  // 从列表中移除已删除的图片
+                  const cloudImages = this.data.cloudImages.filter(item => !item.selected)
                   this.setData({ cloudImages, cloudSelectedCount: 0 })
-                  wx.showToast({ title: '删除成功', icon: 'success' })
                 }
               },
               fail: (err) => {
                 console.log('删除失败:', err)
+                failCount++
+                if (successCount + failCount === total) {
+                  wx.hideLoading()
+                  wx.showModal({
+                    title: '删除完成',
+                    content: `成功: ${successCount} 张\n失败: ${failCount} 张\n\n失败可能原因：数据库权限不足，请在云开发控制台设置 dataset 集合权限为"所有用户可读写"`,
+                    showCancel: false
+                  })
+                  // 只移除成功删除的图片
+                  const deletedIds = selectedImages.slice(0, successCount).map(i => i._id)
+                  const cloudImages = this.data.cloudImages.filter(item => !deletedIds.includes(item._id))
+                  this.setData({ cloudImages, cloudSelectedCount: 0 })
+                }
               }
             })
           })
