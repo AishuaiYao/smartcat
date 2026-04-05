@@ -1,3 +1,5 @@
+const app = getApp()
+
 Page({
   data: {
     imageData: null,
@@ -10,87 +12,72 @@ Page({
     savedCount: 0
   },
 
-  // 帧率计算
   lastFrameTime: 0,
-
-  tcpSocket: null,
   udpSocket: null,
-  esp32IP: '192.168.4.1',
-  esp32Port: 5000,
   udpLocalPort: 5001,
-  
-  // 帧缓冲区管理
-  frameBuffer: null,         // 当前帧缓冲区 { frameNum, totalChunks, chunks[], receivedCount }
-  frameSize: 19200,          // 160x120 灰度图
+  frameBuffer: null,
+  frameSize: 19200,
 
   onLoad(options) {
-    // 调试模式
     if (options.debug === '1') {
       this.setData({ debugMode: true, streaming: true })
       this.generateDebugImage()
       return
     }
-    this.connectDevice()
-  },
-
-  onUnload() {
-    this.disconnect()
-  },
-
-  connectDevice() {
-    // 创建TCP连接
-    const socket = wx.createTCPSocket()
-    if (!socket) {
-      wx.showToast({ title: '连接失败', icon: 'none' })
+    
+    if (!app.globalData.connected) {
+      wx.showToast({ title: '设备未连接', icon: 'none' })
       wx.navigateBack()
       return
     }
-    this.tcpSocket = socket
+    
+    app.addMessageCallback(this.onMessage.bind(this))
+    app.addCloseCallback(this.onClose.bind(this))
+    app.addErrorCallback(this.onError.bind(this))
+    this.setupUDP()
+  },
 
-    socket.onConnect(() => {
-      console.log('[Collect] TCP连接成功，发送HELLO')
-      socket.write('HELLO\n')
-    })
+  onUnload() {
+    console.log('[Collect] 页面卸载')
+    app.removeMessageCallback(this.onMessage)
+    app.removeCloseCallback(this.onClose)
+    app.removeErrorCallback(this.onError)
+    
+    if (this.udpSocket) {
+      app.sendCommand('STOP')
+      this.udpSocket.close()
+      this.udpSocket = null
+    }
+    this.frameBuffer = null
+  },
 
-    socket.onMessage((res) => {
-      const bytes = new Uint8Array(res.message)
-      const str = String.fromCharCode(...bytes.subarray(0, Math.min(bytes.length, 50)))
-      console.log('[Collect] TCP消息: ' + str)
-      
-      // 处理握手响应
-      if (str.includes('LinePatrol') || str.includes('|')) {
-        console.log('[Collect] 握手成功，创建UDP')
-        this.setupUDP()
-        return
-      }
-      
-      // 处理UDP_OK响应
-      if (str.includes('UDP_OK')) {
-        console.log('[Collect] UDP就绪，发送STREAM')
-        this.sendCommand('STREAM')
-        this.setData({ streaming: true })
-        return
-      }
-      
-      // 处理错误
-      if (str.includes('UDP_NOT_READY')) {
-        console.log('[Collect] UDP未就绪')
-        wx.showToast({ title: 'UDP初始化失败', icon: 'none' })
-      }
-    })
+  onMessage(res) {
+    const bytes = new Uint8Array(res.message)
+    const str = String.fromCharCode(...bytes.subarray(0, Math.min(bytes.length, 50)))
+    console.log('[Collect] TCP消息: ' + str)
+    
+    if (str.includes('UDP_OK')) {
+      console.log('[Collect] UDP就绪，发送STREAM')
+      app.sendCommand('STREAM')
+      this.setData({ streaming: true })
+      return
+    }
+    
+    if (str.includes('UDP_NOT_READY')) {
+      console.log('[Collect] UDP未就绪')
+      wx.showToast({ title: 'UDP初始化失败', icon: 'none' })
+    }
+  },
 
-    socket.onClose(() => {
-      console.log('[Collect] TCP连接已关闭')
-      this.setData({ streaming: false })
-    })
+  onClose() {
+    console.log('[Collect] TCP连接已关闭')
+    this.setData({ streaming: false })
+  },
 
-    socket.onError((err) => {
-      console.log('[Collect] TCP连接错误:', err)
-      wx.showToast({ title: '连接断开', icon: 'none' })
-      this.setData({ streaming: false })
-    })
-
-    socket.connect({ address: this.esp32IP, port: this.esp32Port })
+  onError(err) {
+    console.log('[Collect] TCP连接错误:', err)
+    wx.showToast({ title: '连接断开', icon: 'none' })
+    this.setData({ streaming: false })
   },
 
   setupUDP() {
@@ -103,28 +90,25 @@ Page({
       return
     }
     this.udpSocket = udp
+    app.setUDPSocket(udp)
 
     udp.onMessage((res) => {
-      const { message } = res
-      this.onReceiveUDPData(message)
+      this.onReceiveUDPData(res.message)
     })
 
     udp.onError((err) => {
       console.log('[Collect] UDP错误:', err)
     })
 
-    // 绑定本地端口
     const port = udp.bind(this.udpLocalPort)
     console.log('[Collect] UDP绑定端口: ' + port)
     console.log('================================')
     
-    // 发送UDP_HELLO告知ESP32
-    this.sendCommand('UDP_HELLO:' + port)
+    app.sendCommand('UDP_HELLO:' + port)
     
-    // 发送一个UDP包让ESP32知道客户端地址
     const helloMsg = 'HELLO_UDP'
     udp.send({
-      address: this.esp32IP,
+      address: app.globalData.esp32IP,
       port: 5001,
       message: helloMsg
     })
@@ -200,7 +184,6 @@ Page({
       return null
     }
     
-    // 组装所有分片
     const grayData = new Uint8Array(this.frameSize)
     let offset = 0
     
@@ -213,41 +196,6 @@ Page({
     }
     
     return grayData
-  },
-
-  disconnect() {
-    console.log('========== 断开连接 ==========')
-    
-    if (this.tcpSocket) {
-      console.log('[TCP] 发送STOP命令')
-      this.sendCommand('STOP')
-      console.log('[TCP] 关闭连接')
-      this.tcpSocket.close()
-      this.tcpSocket = null
-    }
-    if (this.udpSocket) {
-      console.log('[UDP] 关闭Socket')
-      this.udpSocket.close()
-      this.udpSocket = null
-    }
-    
-    // 清空缓冲区
-    this.frameBuffer = null
-    
-    console.log('[统计] 总帧数:', this.data.frameCount)
-    console.log('================================')
-  },
-
-  sendCommand(cmd) {
-    if (!this.tcpSocket) return
-    const msg = cmd + '\n'
-    const buffer = new ArrayBuffer(msg.length)
-    const view = new Uint8Array(buffer)
-    for (let i = 0; i < msg.length; i++) {
-      view[i] = msg.charCodeAt(i)
-    }
-    this.tcpSocket.write(buffer)
-    console.log('[Collect] 发送命令: ' + cmd)
   },
 
   processImage(grayData) {
@@ -278,12 +226,10 @@ Page({
         this.setData({ imageData: res.tempFilePath })
         const processTime = Date.now() - startTime
         
-        // 每10帧打印一次处理耗时
         if (frameCount % 10 === 0) {
           console.log('[Render] 帧' + frameCount + ': 渲染完成, 耗时' + processTime + 'ms')
         }
         
-        // 每10帧保存一幅图像
         if (frameCount % 10 === 1 && !this.data.debugMode) {
           this.saveImage(res.tempFilePath)
         }
@@ -292,14 +238,12 @@ Page({
   },
 
   saveImage(tempFilePath) {
-    // 检查是否超过500张限制
     let images = wx.getStorageSync('savedImages') || []
     if (images.length >= 500) {
       console.log('[Save] 已达500张上限，跳过保存')
       return
     }
 
-    // 保存到文件缓存
     wx.saveFile({
       tempFilePath,
       success: (res) => {
@@ -321,31 +265,31 @@ Page({
 
   onLeft() {
     if (this.data.debugMode) return
-    this.sendCommand('MOTOR_LEFT')
+    app.sendCommand('MOTOR_LEFT')
   },
 
   onRight() {
     if (this.data.debugMode) return
-    this.sendCommand('MOTOR_RIGHT')
+    app.sendCommand('MOTOR_RIGHT')
   },
 
   onStop() {
     if (this.data.debugMode) return
-    this.sendCommand('MOTOR_STOP')
+    app.sendCommand('MOTOR_STOP')
   },
 
   onStartStop() {
     const running = !this.data.running
     this.setData({ running })
     if (this.data.debugMode) return
-    this.sendCommand(running ? 'START' : 'STOP')
+    app.sendCommand(running ? 'START' : 'STOP')
   },
 
   onSpeedChange(e) {
     const speed = e.detail.value
     this.setData({ speed })
     if (this.data.debugMode) return
-    this.sendCommand('SPEED:' + speed)
+    app.sendCommand('SPEED:' + speed)
   },
 
   generateDebugImage() {
@@ -353,7 +297,6 @@ Page({
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
     
-    // 生成渐变测试图案
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const i = (y * width + x) * 4
@@ -378,5 +321,4 @@ Page({
       }
     })
   }
-
 })

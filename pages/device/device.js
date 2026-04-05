@@ -1,3 +1,5 @@
+const app = getApp()
+
 Page({
   data: {
     connected: false,
@@ -12,9 +14,6 @@ Page({
     logMsgs: []
   },
 
-  socket: null,
-  esp32IP: '192.168.4.1',
-  esp32Port: 5000,
   receiveBuffer: null,
   expectedLength: 0,
   receiveOffset: 0,
@@ -23,7 +22,7 @@ Page({
 
   log(msg) {
     const time = new Date().toLocaleTimeString()
-    console.log('[Index] ' + time + ' ' + msg)
+    console.log('[Device] ' + time + ' ' + msg)
     const msgs = this.data.logMsgs
     msgs.unshift(time + ' | ' + msg)
     if (msgs.length > 50) msgs.pop()
@@ -46,12 +45,16 @@ Page({
 
   onShow() {
     this.log('页面显示')
+    this.setData({ connected: app.globalData.connected })
     this.loadSavedImages()
   },
 
   onUnload() {
     this.log('页面卸载')
-    this.disconnect()
+    app.removeMessageCallback(this.onMessage)
+    app.removeCloseCallback(this.onClose)
+    app.removeErrorCallback(this.onError)
+    app.disconnectTCP()
   },
 
   loadSavedImages() {
@@ -61,59 +64,43 @@ Page({
   },
 
   connectDevice() {
-    this.log('>>> 开始连接 ' + this.esp32IP + ':' + this.esp32Port)
+    this.log('>>> 开始连接 ' + app.globalData.esp32IP + ':' + app.globalData.esp32Port)
 
-    const socket = wx.createTCPSocket()
-    if (!socket) {
-      this.log('!!! createTCPSocket 失败')
-      this.setData({ connecting: false })
-      wx.showModal({ title: '连接失败', content: '无法创建Socket', showCancel: false, complete: () => wx.navigateBack() })
-      return
-    }
-    this.socket = socket
-    this.log('TCPSocket 创建成功')
+    app.addMessageCallback(this.onMessage.bind(this))
+    app.addCloseCallback(this.onClose.bind(this))
+    app.addErrorCallback(this.onError.bind(this))
 
-    socket.onConnect(() => {
-      this.log('<<< TCP连接成功')
-      socket.write('HELLO\n')
-    })
-
-    socket.onMessage((res) => {
-      const bytes = new Uint8Array(res.message)
-      if (!this.data.connected) {
-        const info = String.fromCharCode(...bytes).trim()
-        this.log('<<< 握手响应: ' + info)
-        this.setData({ connected: true, connecting: false })
-        return
+    app.connectTCP((success) => {
+      if (!success) {
+        this.log('!!! 连接失败')
+        this.setData({ connecting: false })
+        wx.showModal({ title: '连接失败', content: '无法创建Socket', showCancel: false, complete: () => wx.navigateBack() })
       }
-      this.log('<<< 收到数据包: ' + bytes.length + ' 字节')
-      this.onReceiveData(res.message)
     })
-
-    socket.onClose(() => {
-      this.log('<<< 连接已关闭')
-      this.setData({ connected: false, capturing: false })
-      this.socket = null
-    })
-
-    socket.onError((err) => {
-      this.log('!!! 连接错误: ' + JSON.stringify(err))
-      this.setData({ connected: false, connecting: false })
-      this.socket = null
-      wx.showModal({ title: '连接失败', content: '无法连接设备', showCancel: false, complete: () => wx.navigateBack() })
-    })
-
-    this.log('>>> 发起TCP连接请求...')
-    socket.connect({ address: this.esp32IP, port: this.esp32Port })
   },
 
-  disconnect() {
-    if (this.socket) {
-      this.log('关闭Socket')
-      this.socket.close()
-      this.socket = null
+  onMessage(res) {
+    const bytes = new Uint8Array(res.message)
+    if (!this.data.connected) {
+      const info = String.fromCharCode(...bytes).trim()
+      this.log('<<< 握手响应: ' + info)
+      app.setConnected(true)
+      this.setData({ connected: true, connecting: false })
+      return
     }
+    this.log('<<< 收到数据包: ' + bytes.length + ' 字节')
+    this.onReceiveData(res.message)
+  },
+
+  onClose() {
+    this.log('<<< 连接已关闭')
     this.setData({ connected: false, capturing: false })
+  },
+
+  onError(err) {
+    this.log('!!! 连接错误: ' + JSON.stringify(err))
+    this.setData({ connected: false, connecting: false })
+    wx.showModal({ title: '连接失败', content: '无法连接设备', showCancel: false, complete: () => wx.navigateBack() })
   },
 
   captureImage() {
@@ -138,13 +125,7 @@ Page({
     this.headerBuffer = []
 
     this.log('>>> 发送CAPTURE命令')
-    const cmd = 'CAPTURE\n'
-    const buffer = new ArrayBuffer(cmd.length)
-    const view = new Uint8Array(buffer)
-    for (let i = 0; i < cmd.length; i++) {
-      view[i] = cmd.charCodeAt(i)
-    }
-    this.socket.write(buffer)
+    app.sendCommand('CAPTURE')
   },
 
   onReceiveData(data) {
@@ -250,7 +231,6 @@ Page({
 
   goToCollect() {
     this.log('>>> 跳转数据采集页面')
-    this.disconnect()
     wx.navigateTo({ url: '/pages/collect/collect' })
   }
 })
