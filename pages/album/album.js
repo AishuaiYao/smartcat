@@ -7,7 +7,18 @@ Page({
     uploading: false,
     uploadProgress: 0,
     uploadCurrent: 0,
-    uploadTotal: 0
+    uploadTotal: 0,
+    debugMode: false,
+    // 云端状态
+    showCloud: false,
+    cloudImages: [],
+    cloudLoading: false
+  },
+
+  onLoad(options) {
+    const debugMode = options.debug === '1'
+    this.setData({ debugMode })
+    this.loadImages()
   },
 
   onShow() {
@@ -17,7 +28,6 @@ Page({
   loadImages() {
     let images = wx.getStorageSync('savedImages') || []
     
-    // 调试模式且没有图片时生成测试数据
     if (this.data.debugMode && images.length === 0) {
       this.generateTestImages()
       return
@@ -41,26 +51,6 @@ Page({
     }
   },
 
-  data: {
-    images: [],
-    selectedCount: 0,
-    uploadedCount: 0,
-    storageSize: '0KB',
-    uploading: false,
-    uploadProgress: 0,
-    uploadCurrent: 0,
-    uploadTotal: 0,
-    debugMode: false
-  },
-
-  SERVER_URL: 'https://your-server.com/upload',
-
-  onLoad(options) {
-    const debugMode = options.debug === '1'
-    this.setData({ debugMode })
-    this.loadImages()
-  },
-
   generateTestImages() {
     this.setData({ storageSize: '生成测试数据...' })
 
@@ -73,19 +63,17 @@ Page({
       const ctx = canvas.getContext('2d')
       const imgData = ctx.createImageData(width, height)
 
-      // 生成不同的灰度图案
       for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
           const idx = (y * width + x) * 4
           let gray = 0
 
-          // 不同图案
-          if (i === 0) gray = (x + y) % 256 // 渐变
-          else if (i === 1) gray = Math.sin(x / 10) * 127 + 128 // 正弦波
-          else if (i === 2) gray = ((x % 20) < 10) ? 255 : 0 // 竖条纹
-          else if (i === 3) gray = ((y % 20) < 10) ? 255 : 0 // 横条纹
-          else if (i === 4) gray = Math.sqrt((x-80)**2 + (y-60)**2) * 2 // 圆形
-          else gray = Math.random() * 256 // 随机噪声
+          if (i === 0) gray = (x + y) % 256
+          else if (i === 1) gray = Math.sin(x / 10) * 127 + 128
+          else if (i === 2) gray = ((x % 20) < 10) ? 255 : 0
+          else if (i === 3) gray = ((y % 20) < 10) ? 255 : 0
+          else if (i === 4) gray = Math.sqrt((x-80)**2 + (y-60)**2) * 2
+          else gray = Math.random() * 256
 
           imgData.data[idx] = gray
           imgData.data[idx + 1] = gray
@@ -230,8 +218,6 @@ Page({
       wx.showToast({ title: '请先选择图片', icon: 'none' })
       return
     }
-
-    // 检测网络状态
     this.checkNetworkAndUpload()
   },
 
@@ -251,17 +237,14 @@ Page({
           return
         }
 
-        // 是WiFi，尝试检测是否能访问公网
         wx.request({
           url: 'https://www.baidu.com',
           method: 'HEAD',
           timeout: 3000,
           success: () => {
-            // 可以访问公网，开始上传
             this.startUpload()
           },
           fail: () => {
-            // 无法访问公网，可能还在设备WiFi
             wx.showModal({
               title: '网络提示',
               content: '当前WiFi无法访问互联网，请切换到家庭WiFi后再上传',
@@ -288,12 +271,10 @@ Page({
     const db = wx.cloud.database()
 
     selectedImages.forEach((img) => {
-      // 读取图片文件并转换为base64
       wx.getFileSystemManager().readFile({
         filePath: img.path,
         encoding: 'base64',
         success: (res) => {
-          // 上传到云数据库
           db.collection('dataset').add({
             data: {
               image: res.data,
@@ -354,6 +335,120 @@ Page({
           })
         }
       })
+    })
+  },
+
+  // 云端功能
+  openCloud() {
+    this.setData({ showCloud: true, cloudLoading: true, cloudImages: [] })
+    this.loadCloudImages()
+  },
+
+  closeCloud() {
+    this.setData({ showCloud: false })
+  },
+
+  loadCloudImages() {
+    const db = wx.cloud.database()
+    db.collection('dataset')
+      .orderBy('uploadedAt', 'desc')
+      .limit(100)
+      .get({
+        success: (res) => {
+          const cloudImages = res.data.map(item => ({
+            _id: item._id,
+            image: 'data:image/png;base64,' + item.image,
+            time: item.time || item.uploadedAt,
+            width: item.width || 160,
+            height: item.height || 120
+          }))
+          this.setData({ cloudImages, cloudLoading: false })
+        },
+        fail: (err) => {
+          console.log('加载云端图片失败:', err)
+          this.setData({ cloudLoading: false })
+          wx.showToast({ title: '加载失败', icon: 'none' })
+        }
+      })
+  },
+
+  previewCloudImage(e) {
+    const index = e.currentTarget.dataset.index
+    const urls = this.data.cloudImages.map(img => img.image)
+    wx.previewImage({
+      current: this.data.cloudImages[index].image,
+      urls: urls
+    })
+  },
+
+  deleteCloudImage(e) {
+    const id = e.currentTarget.dataset.id
+    wx.showModal({
+      title: '确认删除',
+      content: '确定从云端删除此图片？',
+      success: (res) => {
+        if (res.confirm) {
+          const db = wx.cloud.database()
+          db.collection('dataset').doc(id).remove({
+            success: () => {
+              const cloudImages = this.data.cloudImages.filter(img => img._id !== id)
+              this.setData({ cloudImages })
+              wx.showToast({ title: '删除成功', icon: 'success' })
+            },
+            fail: (err) => {
+              console.log('删除失败:', err)
+              wx.showToast({ title: '删除失败', icon: 'none' })
+            }
+          })
+        }
+      }
+    })
+  },
+
+  saveCloudImage(e) {
+    const index = e.currentTarget.dataset.index
+    const img = this.data.cloudImages[index]
+    
+    // base64转临时文件
+    const base64 = img.image.split(',')[1]
+    const fs = wx.getFileSystemManager()
+    const filePath = wx.env.USER_DATA_PATH + '/cloud_' + Date.now() + '.png'
+    
+    fs.writeFile({
+      filePath: filePath,
+      data: base64,
+      encoding: 'base64',
+      success: () => {
+        // 保存到相册
+        wx.saveImageToPhotosAlbum({
+          filePath: filePath,
+          success: () => {
+            wx.showToast({ title: '已保存到相册', icon: 'success' })
+            // 删除临时文件
+            fs.unlinkSync(filePath)
+          },
+          fail: (err) => {
+            console.log('保存相册失败:', err)
+            if (err.errMsg.includes('auth deny')) {
+              wx.showModal({
+                title: '提示',
+                content: '需要授权保存图片到相册',
+                success: (res) => {
+                  if (res.confirm) {
+                    wx.openSetting()
+                  }
+                }
+              })
+            } else {
+              wx.showToast({ title: '保存失败', icon: 'none' })
+            }
+          }
+        })
+      },
+      fail: (err) => {
+        console.log('写入文件失败:', err)
+        wx.showToast({ title: '保存失败', icon: 'none' })
+      }
     })
   }
 })
