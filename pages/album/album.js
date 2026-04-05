@@ -10,7 +10,6 @@ Page({
     uploadTotal: 0
   },
 
-  // 上传服务器地址
   SERVER_URL: 'https://your-server.com/upload',
 
   onLoad() {
@@ -46,9 +45,7 @@ Page({
         if (stats && stats.size) {
           totalSize += stats.size
         }
-      } catch (e) {
-        // 忽略错误
-      }
+      } catch (e) {}
     })
 
     if (totalSize < 1024) {
@@ -89,7 +86,6 @@ Page({
       content: `确定删除 ${this.data.selectedCount} 张图片？`,
       success: (res) => {
         if (res.confirm) {
-          // 删除文件
           const selectedPaths = this.data.images
             .filter(img => img.selected)
             .map(img => img.path)
@@ -97,12 +93,9 @@ Page({
           selectedPaths.forEach(path => {
             try {
               wx.removeSavedFile({ filePath: path })
-            } catch (e) {
-              // 忽略删除错误
-            }
+            } catch (e) {}
           })
 
-          // 更新存储
           let images = this.data.images.filter(img => !img.selected)
           const storageImages = images.map(({ selected, ...rest }) => rest)
           wx.setStorageSync('savedImages', storageImages)
@@ -141,7 +134,7 @@ Page({
     let failCount = 0
     let completed = 0
 
-    selectedImages.forEach((img, i) => {
+    selectedImages.forEach((img) => {
       wx.uploadFile({
         url: this.SERVER_URL,
         filePath: img.path,

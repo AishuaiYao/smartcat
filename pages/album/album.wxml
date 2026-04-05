@@ -40,16 +40,16 @@
       <view class="image-item {{item.selected ? 'selected' : ''}}"
             wx:for="{{images}}" wx:key="path"
             bindtap="toggleSelect" data-index="{{index}}">
-        <image class="image" src="{{item.path}}" mode="aspectFill" lazy-load></image>
+        <image class="image" src="{{item.path}}" mode="aspectFit" lazy-load></image>
         <view class="checkbox {{item.selected ? 'checked' : ''}}">
           <text wx:if="{{item.selected}}">✓</text>
         </view>
         <view class="status-badge {{item.uploaded ? 'uploaded' : 'pending'}}">
           {{item.uploaded ? '已上传' : '待上传'}}
         </view>
-        <view class="time-badge">{{item.time}}</view>
       </view>
     </view>
+    <view class="bottom-space"></view>
   </scroll-view>
 
   <!-- 空状态 -->

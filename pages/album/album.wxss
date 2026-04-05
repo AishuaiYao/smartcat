@@ -74,53 +74,76 @@
   color: #ddd;
 }
 
+/* 提示栏 */
+.tip-bar {
+  padding: 16rpx 30rpx;
+  margin: 12rpx 20rpx 0;
+  background-color: #e6f7ff;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #1890ff;
+  text-align: center;
+}
+
 /* 图片网格 */
 .image-grid {
   flex: 1;
-  margin-top: 20rpx;
+  margin-top: 12rpx;
 }
 
 .grid-container {
   display: flex;
   flex-wrap: wrap;
-  padding: 10rpx;
+  padding: 20rpx;
 }
 
 .image-item {
-  width: calc(33.33% - 20rpx);
-  margin: 10rpx;
+  width: calc(50% - 10rpx);
+  margin-right: 20rpx;
+  margin-bottom: 20rpx;
   position: relative;
   border-radius: 12rpx;
   overflow: hidden;
-  background-color: #e0e0e0;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  background-color: white;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12rpx;
+  box-sizing: border-box;
+}
+
+/* 每行第2个元素（偶数项）去除右边距 */
+.image-item:nth-child(2n) {
+  margin-right: 0;
 }
 
 .image-item.selected {
   box-shadow: 0 0 0 4rpx #667eea, 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  background-color: #f0f4ff;
 }
 
 .image {
   width: 100%;
-  aspect-ratio: 1;
+  height: 200rpx;
   display: block;
 }
 
 .checkbox {
   position: absolute;
-  top: 12rpx;
-  right: 12rpx;
-  width: 44rpx;
-  height: 44rpx;
+  top: 8rpx;
+  right: 8rpx;
+  width: 40rpx;
+  height: 40rpx;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   border: 2rpx solid #ddd;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: white;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .checkbox.checked {
@@ -130,11 +153,11 @@
 
 .status-badge {
   position: absolute;
-  bottom: 12rpx;
-  left: 12rpx;
-  padding: 6rpx 14rpx;
-  border-radius: 20rpx;
-  font-size: 20rpx;
+  bottom: 6rpx;
+  left: 6rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 16rpx;
+  font-size: 18rpx;
   font-weight: 500;
 }
 
@@ -148,15 +171,8 @@
   color: white;
 }
 
-.time-badge {
-  position: absolute;
-  bottom: 12rpx;
-  right: 12rpx;
-  padding: 4rpx 10rpx;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  font-size: 18rpx;
-  border-radius: 8rpx;
+.bottom-space {
+  height: 200rpx;
 }
 
 /* 空状态 */
