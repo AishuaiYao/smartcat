@@ -30,8 +30,10 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ deviceName: options.name || '未知设备' })
-    this.log('页面加载: ' + this.data.deviceName)
+    const deviceName = options.name || '未知设备'
+    this.setData({ deviceName })
+    wx.setNavigationBarTitle({ title: deviceName })
+    this.log('页面加载: ' + deviceName)
     this.loadSavedImages()
     this.connectDevice()
   },
@@ -236,8 +238,21 @@ Page({
   },
 
   goToAlbum() {
-    this.log('>>> 跳转相册')
-    wx.navigateTo({ url: '/pages/album/album' })
+    this.log('>>> 打开手机相册')
+    wx.chooseMedia({
+      count: 9,
+      mediaType: ['image'],
+      sourceType: ['album'],
+      success: (res) => {
+        this.log('<<< 已选择 ' + res.tempFiles.length + ' 张图片')
+        wx.previewMedia({
+          sources: res.tempFiles.map(f => ({ url: f.tempFilePath, type: 'image' }))
+        })
+      },
+      fail: (err) => {
+        this.log('!!! 选择图片失败: ' + JSON.stringify(err))
+      }
+    })
   },
 
   goToCollect() {

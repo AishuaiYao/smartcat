@@ -29,13 +29,7 @@
     <image class="preview-image" src="{{imageData}}" mode="widthFix"></image>
   </view>
 
-  <!-- 本地图片统计 -->
-  <view class="stats-bar" bindtap="goToAlbum">
-    <text>本地已保存 {{imageCount}} 张图片</text>
-    <text class="arrow">→</text>
-  </view>
-
-  <!-- 跳转相册 -->
+  <!-- 打开相册 -->
   <button class="btn btn-album" bindtap="goToAlbum">
     打开相册
   </button>
