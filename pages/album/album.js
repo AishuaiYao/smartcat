@@ -2,11 +2,15 @@ Page({
   data: {
     images: [],
     selectedCount: 0,
+    uploadedCount: 0,
+    storageSize: '0KB',
     uploading: false,
-    uploadProgress: 0
+    uploadProgress: 0,
+    uploadCurrent: 0,
+    uploadTotal: 0
   },
 
-  // 上传服务器地址（后续替换为你的服务器）
+  // 上传服务器地址
   SERVER_URL: 'https://your-server.com/upload',
 
   onLoad() {
@@ -23,7 +27,37 @@ Page({
       ...img,
       selected: false
     }))
-    this.setData({ images: processedImages, selectedCount: 0 })
+    const uploadedCount = images.filter(img => img.uploaded).length
+    const storageSize = this.calculateStorageSize(images)
+
+    this.setData({
+      images: processedImages,
+      selectedCount: 0,
+      uploadedCount,
+      storageSize
+    })
+  },
+
+  calculateStorageSize(images) {
+    let totalSize = 0
+    images.forEach(img => {
+      try {
+        const stats = wx.getFileInfo({ filePath: img.path })
+        if (stats && stats.size) {
+          totalSize += stats.size
+        }
+      } catch (e) {
+        // 忽略错误
+      }
+    })
+
+    if (totalSize < 1024) {
+      return totalSize + 'B'
+    } else if (totalSize < 1024 * 1024) {
+      return (totalSize / 1024).toFixed(1) + 'KB'
+    } else {
+      return (totalSize / 1024 / 1024).toFixed(1) + 'MB'
+    }
   },
 
   toggleSelect(e) {
@@ -52,13 +86,37 @@ Page({
 
     wx.showModal({
       title: '确认删除',
-      content: '确定删除 ' + this.data.selectedCount + ' 张图片？',
+      content: `确定删除 ${this.data.selectedCount} 张图片？`,
       success: (res) => {
         if (res.confirm) {
+          // 删除文件
+          const selectedPaths = this.data.images
+            .filter(img => img.selected)
+            .map(img => img.path)
+
+          selectedPaths.forEach(path => {
+            try {
+              wx.removeSavedFile({ filePath: path })
+            } catch (e) {
+              // 忽略删除错误
+            }
+          })
+
+          // 更新存储
           let images = this.data.images.filter(img => !img.selected)
           const storageImages = images.map(({ selected, ...rest }) => rest)
           wx.setStorageSync('savedImages', storageImages)
-          this.setData({ images, selectedCount: 0 })
+
+          const uploadedCount = images.filter(img => img.uploaded).length
+          const storageSize = this.calculateStorageSize(storageImages)
+
+          this.setData({
+            images,
+            selectedCount: 0,
+            uploadedCount,
+            storageSize
+          })
+
           wx.showToast({ title: '删除成功', icon: 'success' })
         }
       }
@@ -72,7 +130,12 @@ Page({
     }
 
     const selectedImages = this.data.images.filter(img => img.selected)
-    this.setData({ uploading: true, uploadProgress: 0 })
+    this.setData({
+      uploading: true,
+      uploadProgress: 0,
+      uploadCurrent: 0,
+      uploadTotal: selectedImages.length
+    })
 
     let successCount = 0
     let failCount = 0
@@ -99,27 +162,31 @@ Page({
         },
         complete: () => {
           completed++
-          const progress = Math.round((completed / selectedImages.length) * 100)
-          this.setData({ uploadProgress: progress })
+          this.setData({
+            uploadProgress: Math.round((completed / selectedImages.length) * 100),
+            uploadCurrent: completed
+          })
 
           if (completed === selectedImages.length) {
             const storageImages = this.data.images.map(({ selected, ...rest }) => rest)
             wx.setStorageSync('savedImages', storageImages)
-            this.setData({ uploading: false, uploadProgress: 0, selectedCount: 0 })
+            const uploadedCount = this.data.images.filter(img => img.uploaded).length
+
+            this.setData({
+              uploading: false,
+              uploadProgress: 0,
+              selectedCount: 0,
+              uploadedCount
+            })
+
             wx.showModal({
               title: '上传完成',
-              content: '成功: ' + successCount + ' 张\n失败: ' + failCount + ' 张',
+              content: `成功: ${successCount} 张\n失败: ${failCount} 张`,
               showCancel: false
             })
           }
         }
       })
     })
-  },
-
-  previewImage(e) {
-    const src = e.currentTarget.dataset.src
-    const urls = this.data.images.map(img => img.path)
-    wx.previewImage({ current: src, urls })
   }
 })

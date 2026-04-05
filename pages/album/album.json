@@ -1,3 +1,5 @@
 {
-  "navigationBarTitleText": "本地相册"
+  "navigationBarTitleText": "本地相册",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white"
 }

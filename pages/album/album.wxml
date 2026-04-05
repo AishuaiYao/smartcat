@@ -1,55 +1,83 @@
 <view class="container">
-  <view class="header">
-    <text class="title">本地相册</text>
-    <text class="count">共 {{images.length}} 张</text>
+  <!-- 顶部统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value">{{images.length}}</text>
+      <text class="stat-label">总图片</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{uploadedCount}}</text>
+      <text class="stat-label">已上传</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{images.length - uploadedCount}}</text>
+      <text class="stat-label">待上传</text>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat-item">
+      <text class="stat-value">{{storageSize}}</text>
+      <text class="stat-label">占用空间</text>
+    </view>
   </view>
 
   <!-- 操作栏 -->
-  <view class="toolbar">
+  <view class="toolbar" wx:if="{{images.length > 0}}">
     <view class="toolbar-left">
-      <text>已选 {{selectedCount}} 张</text>
+      <text class="select-info">已选 {{selectedCount}} 张</text>
     </view>
     <view class="toolbar-right">
       <text class="btn-text" bindtap="selectAll">全选</text>
+      <text class="btn-divider">|</text>
       <text class="btn-text" bindtap="deselectAll">取消</text>
     </view>
   </view>
 
   <!-- 图片网格 -->
-  <view class="image-grid" wx:if="{{images.length > 0}}">
-    <view class="image-item {{item.selected ? 'selected' : ''}}" 
-          wx:for="{{images}}" wx:key="path"
-          bindtap="toggleSelect" data-index="{{index}}">
-      <image class="image" src="{{item.path}}" mode="aspectFill" 
-             catchtap="previewImage" data-src="{{item.path}}"></image>
-      <view class="checkbox" wx:if="{{item.selected}}">✓</view>
-      <view class="status-tag {{item.uploaded ? 'uploaded' : ''}}">
-        {{item.uploaded ? '已上传' : '待上传'}}
+  <scroll-view class="image-grid" scroll-y wx:if="{{images.length > 0}}">
+    <view class="grid-container">
+      <view class="image-item {{item.selected ? 'selected' : ''}}"
+            wx:for="{{images}}" wx:key="path"
+            bindtap="toggleSelect" data-index="{{index}}">
+        <image class="image" src="{{item.path}}" mode="aspectFill" lazy-load></image>
+        <view class="checkbox {{item.selected ? 'checked' : ''}}">
+          <text wx:if="{{item.selected}}">✓</text>
+        </view>
+        <view class="status-badge {{item.uploaded ? 'uploaded' : 'pending'}}">
+          {{item.uploaded ? '已上传' : '待上传'}}
+        </view>
+        <view class="time-badge">{{item.time}}</view>
       </view>
+    </view>
+  </scroll-view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{images.length === 0}}">
+    <view class="empty-icon">📷</view>
+    <text class="empty-title">暂无图片</text>
+    <text class="empty-desc">采集的数据将显示在这里</text>
+    <navigator url="/pages/device/device" class="empty-btn">去采集</navigator>
+  </view>
+
+  <!-- 上传进度遮罩 -->
+  <view class="upload-overlay" wx:if="{{uploading}}">
+    <view class="upload-modal">
+      <view class="upload-spinner"></view>
+      <text class="upload-text">上传中 {{uploadProgress}}%</text>
+      <text class="upload-detail">{{uploadCurrent}}/{{uploadTotal}}</text>
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <view class="empty" wx:if="{{images.length === 0}}">
-    <text>暂无图片</text>
-    <text class="empty-tip">请先去拍照页面采集图像</text>
-  </view>
-
-  <!-- 上传进度 -->
-  <view class="progress-bar" wx:if="{{uploading}}">
-    <view class="progress-fill" style="width: {{uploadProgress}}%"></view>
-    <text class="progress-text">上传中 {{uploadProgress}}%</text>
-  </view>
-
-  <!-- 底部操作按钮 -->
-  <view class="bottom-bar">
-    <button class="btn btn-delete" bindtap="deleteSelected" 
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{images.length > 0}}">
+    <button class="btn btn-delete" bindtap="deleteSelected"
             disabled="{{selectedCount === 0 || uploading}}">
-      删除选中
+      删除 ({{selectedCount}})
     </button>
-    <button class="btn btn-upload" bindtap="uploadSelected" 
+    <button class="btn btn-upload" bindtap="uploadSelected"
             disabled="{{selectedCount === 0 || uploading}}">
-      {{uploading ? '上传中...' : '上传到云端'}}
+      上传云端
     </button>
   </view>
 </view>

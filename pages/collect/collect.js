@@ -24,9 +24,6 @@ Page({
   frameSize: 19200,          // 160x120 灰度图
 
   onLoad(options) {
-    // 请求相册权限
-    this.requestAlbumAuth()
-    
     // 调试模式
     if (options.debug === '1') {
       this.setData({ debugMode: true, streaming: true })
@@ -34,18 +31,6 @@ Page({
       return
     }
     this.connectDevice()
-  },
-
-  requestAlbumAuth() {
-    wx.authorize({
-      scope: 'scope.writePhotosAlbum',
-      success: () => {
-        console.log('[Auth] 相册权限已授权')
-      },
-      fail: () => {
-        console.log('[Auth] 相册权限未授权')
-      }
-    })
   },
 
   onUnload() {
@@ -307,26 +292,29 @@ Page({
   },
 
   saveImage(tempFilePath) {
-    wx.saveImageToPhotosAlbum({
-      filePath: tempFilePath,
-      success: () => {
+    // 检查是否超过500张限制
+    let images = wx.getStorageSync('savedImages') || []
+    if (images.length >= 500) {
+      console.log('[Save] 已达500张上限，跳过保存')
+      return
+    }
+
+    // 保存到文件缓存
+    wx.saveFile({
+      tempFilePath,
+      success: (res) => {
+        images.unshift({
+          path: res.savedFilePath,
+          time: new Date().toLocaleString(),
+          uploaded: false
+        })
+        wx.setStorageSync('savedImages', images)
         const savedCount = this.data.savedCount + 1
         this.setData({ savedCount })
-        console.log('[Save] 已保存第' + savedCount + '幅图像到相册')
+        console.log('[Save] 已保存第' + savedCount + '幅图像到缓存，共' + images.length + '张')
       },
       fail: (err) => {
         console.log('[Save] 保存失败:', err)
-        if (err.errMsg.includes('auth deny')) {
-          wx.showModal({
-            title: '提示',
-            content: '需要授权保存图片到相册',
-            success: (res) => {
-              if (res.confirm) {
-                wx.openSetting()
-              }
-            }
-          })
-        }
       }
     })
   },

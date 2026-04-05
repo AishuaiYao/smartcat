@@ -238,21 +238,8 @@ Page({
   },
 
   goToAlbum() {
-    this.log('>>> 打开手机相册')
-    wx.chooseMedia({
-      count: 9,
-      mediaType: ['image'],
-      sourceType: ['album'],
-      success: (res) => {
-        this.log('<<< 已选择 ' + res.tempFiles.length + ' 张图片')
-        wx.previewMedia({
-          sources: res.tempFiles.map(f => ({ url: f.tempFilePath, type: 'image' }))
-        })
-      },
-      fail: (err) => {
-        this.log('!!! 选择图片失败: ' + JSON.stringify(err))
-      }
-    })
+    this.log('>>> 打开本地相册')
+    wx.navigateTo({ url: '/pages/album/album' })
   },
 
   goToCollect() {
