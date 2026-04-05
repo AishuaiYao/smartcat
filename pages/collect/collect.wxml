@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 状态栏 - 左上角 -->
   <view class="status-bar">
-    <text>{{streaming ? 'Streaming | FPS:' + fps + ' | Saved:' + savedCount : 'Connecting...'}}</text>
+    <text>{{streaming ? 'FPS:' + fps + ' | Saved:' + savedCount : 'Connecting...'}}</text>
   </view>
 
   <!-- 顶部控制栏 -->
