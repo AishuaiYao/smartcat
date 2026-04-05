@@ -231,6 +231,49 @@ Page({
       return
     }
 
+    // 检测网络状态
+    this.checkNetworkAndUpload()
+  },
+
+  checkNetworkAndUpload() {
+    wx.getNetworkType({
+      success: (res) => {
+        if (res.networkType !== 'wifi') {
+          wx.showModal({
+            title: '网络提示',
+            content: '当前非WiFi环境，建议切换到家庭WiFi后上传，是否继续？',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                this.startUpload()
+              }
+            }
+          })
+          return
+        }
+
+        // 是WiFi，尝试检测是否能访问公网
+        wx.request({
+          url: 'https://www.baidu.com',
+          method: 'HEAD',
+          timeout: 3000,
+          success: () => {
+            // 可以访问公网，开始上传
+            this.startUpload()
+          },
+          fail: () => {
+            // 无法访问公网，可能还在设备WiFi
+            wx.showModal({
+              title: '网络提示',
+              content: '当前WiFi无法访问互联网，请切换到家庭WiFi后再上传',
+              showCancel: false
+            })
+          }
+        })
+      }
+    })
+  },
+
+  startUpload() {
     const selectedImages = this.data.images.filter(img => img.selected)
     this.setData({
       uploading: true,
@@ -242,51 +285,73 @@ Page({
     let successCount = 0
     let failCount = 0
     let completed = 0
+    const db = wx.cloud.database()
 
     selectedImages.forEach((img) => {
-      wx.uploadFile({
-        url: this.SERVER_URL,
+      // 读取图片文件并转换为base64
+      wx.getFileSystemManager().readFile({
         filePath: img.path,
-        name: 'file',
-        success: () => {
-          successCount++
-          const images = this.data.images
-          const idx = images.findIndex(item => item.path === img.path)
-          if (idx !== -1) {
-            images[idx].uploaded = true
-            images[idx].selected = false
-          }
-          this.setData({ images })
+        encoding: 'base64',
+        success: (res) => {
+          // 上传到云数据库
+          db.collection('dataset').add({
+            data: {
+              image: res.data,
+              width: 160,
+              height: 120,
+              time: new Date(),
+              uploadedAt: db.serverDate()
+            },
+            success: () => {
+              successCount++
+              const images = this.data.images
+              const idx = images.findIndex(item => item.path === img.path)
+              if (idx !== -1) {
+                images[idx].uploaded = true
+                images[idx].selected = false
+              }
+              this.setData({ images })
+            },
+            fail: (err) => {
+              failCount++
+              console.log('上传失败:', err)
+            },
+            complete: () => {
+              completed++
+              this.setData({
+                uploadProgress: Math.round((completed / selectedImages.length) * 100),
+                uploadCurrent: completed
+              })
+
+              if (completed === selectedImages.length) {
+                const storageImages = this.data.images.map(({ selected, ...rest }) => rest)
+                wx.setStorageSync('savedImages', storageImages)
+                const uploadedCount = this.data.images.filter(img => img.uploaded).length
+
+                this.setData({
+                  uploading: false,
+                  uploadProgress: 0,
+                  selectedCount: 0,
+                  uploadedCount
+                })
+
+                wx.showModal({
+                  title: '上传完成',
+                  content: `成功: ${successCount} 张\n失败: ${failCount} 张`,
+                  showCancel: false
+                })
+              }
+            }
+          })
         },
         fail: (err) => {
           failCount++
-          console.log('上传失败:', err)
-        },
-        complete: () => {
           completed++
+          console.log('读取图片失败:', err)
           this.setData({
             uploadProgress: Math.round((completed / selectedImages.length) * 100),
             uploadCurrent: completed
           })
-
-          if (completed === selectedImages.length) {
-            const storageImages = this.data.images.map(({ selected, ...rest }) => rest)
-            wx.setStorageSync('savedImages', storageImages)
-            const uploadedCount = this.data.images.filter(img => img.uploaded).length
-
-            this.setData({
-              uploading: false,
-              uploadProgress: 0,
-              selectedCount: 0,
-              uploadedCount
-            })
-
-            wx.showModal({
-              title: '上传完成',
-              content: `成功: ${successCount} 张\n失败: ${failCount} 张`,
-              showCancel: false
-            })
-          }
         }
       })
     })
