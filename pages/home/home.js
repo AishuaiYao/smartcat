@@ -123,7 +123,7 @@ Page({
       wx.hideLoading()
       socket.close()
       this.testSocket = null
-      wx.navigateTo({ url: `/pages/index/index?name=${device.name}&icon=${device.icon}&mac=${device.mac}` })
+      wx.navigateTo({ url: `/pages/device/device?name=${device.name}&icon=${device.icon}&mac=${device.mac}` })
     })
 
     socket.onError(() => {
