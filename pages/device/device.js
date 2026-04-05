@@ -3,6 +3,7 @@ Page({
     connected: false,
     connecting: true,
     deviceName: '',
+    debugMode: false,
     capturing: false,
     imageData: null,
     savedImages: [],
@@ -31,11 +32,16 @@ Page({
 
   onLoad(options) {
     const deviceName = options.name || '未知设备'
-    this.setData({ deviceName })
+    const debugMode = options.debug === '1'
+    this.setData({ deviceName, debugMode })
     wx.setNavigationBarTitle({ title: deviceName })
-    this.log('页面加载: ' + deviceName)
+    this.log('页面加载: ' + deviceName + (debugMode ? ' [调试模式]' : ''))
     this.loadSavedImages()
-    this.connectDevice()
+    if (!debugMode) {
+      this.connectDevice()
+    } else {
+      this.setData({ connected: true, connecting: false })
+    }
   },
 
   onShow() {
@@ -239,7 +245,7 @@ Page({
 
   goToAlbum() {
     this.log('>>> 打开本地相册')
-    wx.navigateTo({ url: '/pages/album/album' })
+    wx.navigateTo({ url: '/pages/album/album?debug=' + (this.data.debugMode ? '1' : '0') })
   },
 
   goToCollect() {

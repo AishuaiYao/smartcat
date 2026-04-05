@@ -144,7 +144,7 @@ Page({
   },
 
   onDebugTap() {
-    wx.navigateTo({ url: '/pages/device/device?name=模拟设备&icon=📦&mac=debug' })
+    wx.navigateTo({ url: '/pages/device/device?name=模拟设备&icon=📦&mac=debug&debug=1' })
   },
 
   onDeleteDevice(e) {

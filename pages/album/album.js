@@ -10,50 +10,150 @@ Page({
     uploadTotal: 0
   },
 
-  SERVER_URL: 'https://your-server.com/upload',
-
-  onLoad() {
-    this.loadImages()
-  },
-
   onShow() {
     this.loadImages()
   },
 
   loadImages() {
-    const images = wx.getStorageSync('savedImages') || []
+    let images = wx.getStorageSync('savedImages') || []
+    
+    // 调试模式且没有图片时生成测试数据
+    if (this.data.debugMode && images.length === 0) {
+      this.generateTestImages()
+      return
+    }
+
     const processedImages = images.map(img => ({
       ...img,
       selected: false
     }))
     const uploadedCount = images.filter(img => img.uploaded).length
-    const storageSize = this.calculateStorageSize(images)
 
     this.setData({
       images: processedImages,
       selectedCount: 0,
       uploadedCount,
-      storageSize
+      storageSize: images.length > 0 ? '计算中...' : '0KB'
     })
+
+    if (images.length > 0) {
+      this.calculateStorageSize(images)
+    }
+  },
+
+  data: {
+    images: [],
+    selectedCount: 0,
+    uploadedCount: 0,
+    storageSize: '0KB',
+    uploading: false,
+    uploadProgress: 0,
+    uploadCurrent: 0,
+    uploadTotal: 0,
+    debugMode: false
+  },
+
+  SERVER_URL: 'https://your-server.com/upload',
+
+  onLoad(options) {
+    const debugMode = options.debug === '1'
+    this.setData({ debugMode })
+    this.loadImages()
+  },
+
+  generateTestImages() {
+    this.setData({ storageSize: '生成测试数据...' })
+
+    const testImages = []
+    const width = 160
+    const height = 120
+
+    for (let i = 0; i < 6; i++) {
+      const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
+      const ctx = canvas.getContext('2d')
+      const imgData = ctx.createImageData(width, height)
+
+      // 生成不同的灰度图案
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = (y * width + x) * 4
+          let gray = 0
+
+          // 不同图案
+          if (i === 0) gray = (x + y) % 256 // 渐变
+          else if (i === 1) gray = Math.sin(x / 10) * 127 + 128 // 正弦波
+          else if (i === 2) gray = ((x % 20) < 10) ? 255 : 0 // 竖条纹
+          else if (i === 3) gray = ((y % 20) < 10) ? 255 : 0 // 横条纹
+          else if (i === 4) gray = Math.sqrt((x-80)**2 + (y-60)**2) * 2 // 圆形
+          else gray = Math.random() * 256 // 随机噪声
+
+          imgData.data[idx] = gray
+          imgData.data[idx + 1] = gray
+          imgData.data[idx + 2] = gray
+          imgData.data[idx + 3] = 255
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0)
+
+      wx.canvasToTempFilePath({
+        canvas,
+        success: (res) => {
+          wx.saveFile({
+            tempFilePath: res.tempFilePath,
+            success: (saveRes) => {
+              testImages.push({
+                path: saveRes.savedFilePath,
+                time: new Date().toLocaleString(),
+                uploaded: Math.random() > 0.5
+              })
+
+              if (testImages.length === 6) {
+                wx.setStorageSync('savedImages', testImages)
+                this.loadImages()
+              }
+            }
+          })
+        }
+      })
+    }
   },
 
   calculateStorageSize(images) {
     let totalSize = 0
+    let count = 0
+
     images.forEach(img => {
-      try {
-        const stats = wx.getFileInfo({ filePath: img.path })
-        if (stats && stats.size) {
-          totalSize += stats.size
+      wx.getFileInfo({
+        filePath: img.path,
+        success: (res) => {
+          totalSize += res.size
+          count++
+          this.updateStorageSize(totalSize, count, images.length)
+        },
+        fail: () => {
+          count++
+          this.updateStorageSize(totalSize, count, images.length)
         }
-      } catch (e) {}
+      })
     })
 
-    if (totalSize < 1024) {
-      return totalSize + 'B'
-    } else if (totalSize < 1024 * 1024) {
-      return (totalSize / 1024).toFixed(1) + 'KB'
-    } else {
-      return (totalSize / 1024 / 1024).toFixed(1) + 'MB'
+    if (images.length === 0) {
+      this.setData({ storageSize: '0KB' })
+    }
+  },
+
+  updateStorageSize(totalSize, count, total) {
+    if (count === total) {
+      let sizeText = ''
+      if (totalSize < 1024) {
+        sizeText = totalSize + 'B'
+      } else if (totalSize < 1024 * 1024) {
+        sizeText = (totalSize / 1024).toFixed(1) + 'KB'
+      } else {
+        sizeText = (totalSize / 1024 / 1024).toFixed(2) + 'MB'
+      }
+      this.setData({ storageSize: sizeText })
     }
   },
 
@@ -110,15 +210,15 @@ Page({
           wx.setStorageSync('savedImages', storageImages)
 
           const uploadedCount = images.filter(img => img.uploaded).length
-          const storageSize = this.calculateStorageSize(storageImages)
 
           this.setData({
             images,
             selectedCount: 0,
             uploadedCount,
-            storageSize
+            storageSize: '计算中...'
           })
 
+          this.calculateStorageSize(storageImages)
           wx.showToast({ title: '删除成功', icon: 'success' })
         }
       }
