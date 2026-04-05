@@ -36,10 +36,19 @@
 
   <!-- 使用提示 -->
   <view class="tips">
-    <text class="tips-title">使用说明：</text>
-    <text>1. 点击"拍照"采集图像</text>
-    <text>2. 图片自动保存到本地</text>
-    <text>3. 切回家里WiFi后去相册上传</text>
+    <text class="tips-title">使用说明</text>
+    <view class="tip-item">
+      <text class="tip-label">测试</text>
+      <text class="tip-desc">采集实时图像并返回AI预测结果</text>
+    </view>
+    <view class="tip-item">
+      <text class="tip-label">数据采集</text>
+      <text class="tip-desc">查看摄像头实时画面，遥控机器人移动并采集训练数据</text>
+    </view>
+    <view class="tip-item">
+      <text class="tip-label">打开相册</text>
+      <text class="tip-desc">选择已采集数据，切换至家庭WiFi后上传云端训练</text>
+    </view>
   </view>
 
   <!-- 调试日志 -->
