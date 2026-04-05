@@ -65,6 +65,15 @@ Page({
     this.setData({ images, selectedCount })
   },
 
+  previewImage(e) {
+    const index = e.currentTarget.dataset.index
+    const urls = this.data.images.map(img => img.path)
+    wx.previewImage({
+      current: this.data.images[index].path,
+      urls: urls
+    })
+  },
+
   selectAll() {
     const images = this.data.images.map(img => ({ ...img, selected: true }))
     this.setData({ images, selectedCount: images.length })

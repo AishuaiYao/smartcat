@@ -40,7 +40,8 @@
       <view class="image-item {{item.selected ? 'selected' : ''}}"
             wx:for="{{images}}" wx:key="path"
             bindtap="toggleSelect" data-index="{{index}}">
-        <image class="image" src="{{item.path}}" mode="aspectFit" lazy-load></image>
+        <image class="image" src="{{item.path}}" mode="aspectFit" lazy-load
+               catchtap="previewImage" data-index="{{index}}"></image>
         <view class="checkbox {{item.selected ? 'checked' : ''}}">
           <text wx:if="{{item.selected}}">✓</text>
         </view>
