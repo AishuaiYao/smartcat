@@ -88,25 +88,34 @@
   </view>
 
   <!-- 云端图片弹窗 -->
-  <view class="cloud-overlay" wx:if="{{showCloud}}" catchtap="closeCloud">
-    <view class="cloud-modal" catchtap="">
+  <view class="cloud-overlay" wx:if="{{showCloud}}" bindtap="closeCloud">
+    <view class="cloud-modal" catchtap="preventBubble">
       <view class="cloud-header">
         <text class="cloud-title">云端图片 ({{cloudImages.length}})</text>
         <text class="cloud-close" catchtap="closeCloud">✕</text>
       </view>
+
+      <!-- 云端操作栏 -->
+      <view class="cloud-toolbar" wx:if="{{cloudImages.length > 0}}">
+        <view class="toolbar-left">
+          <text class="select-info">已选 {{cloudSelectedCount}} 张</text>
+        </view>
+        <view class="toolbar-right">
+          <text class="btn-text" bindtap="selectAllCloud">全选</text>
+          <text class="btn-divider">|</text>
+          <text class="btn-text" bindtap="deselectAllCloud">取消</text>
+        </view>
+      </view>
       
       <scroll-view class="cloud-content" scroll-y wx:if="{{!cloudLoading && cloudImages.length > 0}}">
         <view class="cloud-grid">
-          <view class="cloud-item" wx:for="{{cloudImages}}" wx:key="_id">
+          <view class="cloud-item {{item.selected ? 'selected' : ''}}"
+                wx:for="{{cloudImages}}" wx:key="_id"
+                bindtap="toggleCloudSelect" data-index="{{index}}">
             <image class="cloud-image" src="{{item.image}}" mode="aspectFit"
                    catchtap="previewCloudImage" data-index="{{index}}"></image>
-            <view class="cloud-actions">
-              <view class="cloud-btn delete-btn" catchtap="deleteCloudImage" data-id="{{item._id}}">
-                🗑️ 删除
-              </view>
-              <view class="cloud-btn save-btn" catchtap="saveCloudImage" data-index="{{index}}">
-                💾 保存
-              </view>
+            <view class="checkbox {{item.selected ? 'checked' : ''}}">
+              <text wx:if="{{item.selected}}">✓</text>
             </view>
           </view>
         </view>
@@ -119,6 +128,18 @@
 
       <view class="cloud-empty" wx:if="{{!cloudLoading && cloudImages.length === 0}}">
         <text>云端暂无图片</text>
+      </view>
+
+      <!-- 云端底部操作栏 -->
+      <view class="cloud-bottom-bar" wx:if="{{cloudImages.length > 0}}">
+        <button class="btn btn-delete" bindtap="deleteCloudSelected"
+                disabled="{{cloudSelectedCount === 0}}">
+          删除 ({{cloudSelectedCount}})
+        </button>
+        <button class="btn btn-upload" bindtap="saveCloudSelected"
+                disabled="{{cloudSelectedCount === 0}}">
+          保存到相册
+        </button>
       </view>
     </view>
   </view>

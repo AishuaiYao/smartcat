@@ -12,7 +12,8 @@ Page({
     // 云端状态
     showCloud: false,
     cloudImages: [],
-    cloudLoading: false
+    cloudLoading: false,
+    cloudSelectedCount: 0
   },
 
   onLoad(options) {
@@ -145,6 +146,7 @@ Page({
     }
   },
 
+  // 本地图片操作
   toggleSelect(e) {
     const index = e.currentTarget.dataset.index
     const images = this.data.images
@@ -340,12 +342,16 @@ Page({
 
   // 云端功能
   openCloud() {
-    this.setData({ showCloud: true, cloudLoading: true, cloudImages: [] })
+    this.setData({ showCloud: true, cloudLoading: true, cloudImages: [], cloudSelectedCount: 0 })
     this.loadCloudImages()
   },
 
   closeCloud() {
     this.setData({ showCloud: false })
+  },
+
+  preventBubble() {
+    // 阻止事件冒泡，不做任何操作
   },
 
   loadCloudImages() {
@@ -360,9 +366,10 @@ Page({
             image: 'data:image/png;base64,' + item.image,
             time: item.time || item.uploadedAt,
             width: item.width || 160,
-            height: item.height || 120
+            height: item.height || 120,
+            selected: false
           }))
-          this.setData({ cloudImages, cloudLoading: false })
+          this.setData({ cloudImages, cloudLoading: false, cloudSelectedCount: 0 })
         },
         fail: (err) => {
           console.log('加载云端图片失败:', err)
@@ -370,6 +377,25 @@ Page({
           wx.showToast({ title: '加载失败', icon: 'none' })
         }
       })
+  },
+
+  // 云端图片选择
+  toggleCloudSelect(e) {
+    const index = e.currentTarget.dataset.index
+    const cloudImages = this.data.cloudImages
+    cloudImages[index].selected = !cloudImages[index].selected
+    const cloudSelectedCount = cloudImages.filter(img => img.selected).length
+    this.setData({ cloudImages, cloudSelectedCount })
+  },
+
+  selectAllCloud() {
+    const cloudImages = this.data.cloudImages.map(img => ({ ...img, selected: true }))
+    this.setData({ cloudImages, cloudSelectedCount: cloudImages.length })
+  },
+
+  deselectAllCloud() {
+    const cloudImages = this.data.cloudImages.map(img => ({ ...img, selected: false }))
+    this.setData({ cloudImages, cloudSelectedCount: 0 })
   },
 
   previewCloudImage(e) {
@@ -381,74 +407,103 @@ Page({
     })
   },
 
-  deleteCloudImage(e) {
-    const id = e.currentTarget.dataset.id
+  // 批量删除云端图片
+  deleteCloudSelected() {
+    if (this.data.cloudSelectedCount === 0) {
+      wx.showToast({ title: '请先选择图片', icon: 'none' })
+      return
+    }
+
     wx.showModal({
       title: '确认删除',
-      content: '确定从云端删除此图片？',
+      content: `确定从云端删除 ${this.data.cloudSelectedCount} 张图片？`,
       success: (res) => {
         if (res.confirm) {
+          const selectedIds = this.data.cloudImages
+            .filter(img => img.selected)
+            .map(img => img._id)
+          
+          let deletedCount = 0
           const db = wx.cloud.database()
-          db.collection('dataset').doc(id).remove({
-            success: () => {
-              const cloudImages = this.data.cloudImages.filter(img => img._id !== id)
-              this.setData({ cloudImages })
-              wx.showToast({ title: '删除成功', icon: 'success' })
-            },
-            fail: (err) => {
-              console.log('删除失败:', err)
-              wx.showToast({ title: '删除失败', icon: 'none' })
-            }
+
+          selectedIds.forEach(id => {
+            db.collection('dataset').doc(id).remove({
+              success: () => {
+                deletedCount++
+                if (deletedCount === selectedIds.length) {
+                  const cloudImages = this.data.cloudImages.filter(img => !img.selected)
+                  this.setData({ cloudImages, cloudSelectedCount: 0 })
+                  wx.showToast({ title: '删除成功', icon: 'success' })
+                }
+              },
+              fail: (err) => {
+                console.log('删除失败:', err)
+              }
+            })
           })
         }
       }
     })
   },
 
-  saveCloudImage(e) {
-    const index = e.currentTarget.dataset.index
-    const img = this.data.cloudImages[index]
-    
-    // base64转临时文件
-    const base64 = img.image.split(',')[1]
-    const fs = wx.getFileSystemManager()
-    const filePath = wx.env.USER_DATA_PATH + '/cloud_' + Date.now() + '.png'
-    
-    fs.writeFile({
-      filePath: filePath,
-      data: base64,
-      encoding: 'base64',
-      success: () => {
-        // 保存到相册
-        wx.saveImageToPhotosAlbum({
-          filePath: filePath,
-          success: () => {
-            wx.showToast({ title: '已保存到相册', icon: 'success' })
-            // 删除临时文件
-            fs.unlinkSync(filePath)
-          },
-          fail: (err) => {
-            console.log('保存相册失败:', err)
-            if (err.errMsg.includes('auth deny')) {
-              wx.showModal({
-                title: '提示',
-                content: '需要授权保存图片到相册',
-                success: (res) => {
-                  if (res.confirm) {
-                    wx.openSetting()
-                  }
-                }
-              })
-            } else {
-              wx.showToast({ title: '保存失败', icon: 'none' })
+  // 批量保存到相册
+  saveCloudSelected() {
+    if (this.data.cloudSelectedCount === 0) {
+      wx.showToast({ title: '请先选择图片', icon: 'none' })
+      return
+    }
+
+    const selectedImages = this.data.cloudImages.filter(img => img.selected)
+    let savedCount = 0
+    let failCount = 0
+    const total = selectedImages.length
+
+    wx.showLoading({ title: '保存中...', mask: true })
+
+    selectedImages.forEach((img, index) => {
+      const base64 = img.image.split(',')[1]
+      const fs = wx.getFileSystemManager()
+      const filePath = wx.env.USER_DATA_PATH + '/cloud_' + Date.now() + '_' + index + '.png'
+      
+      fs.writeFile({
+        filePath: filePath,
+        data: base64,
+        encoding: 'base64',
+        success: () => {
+          wx.saveImageToPhotosAlbum({
+            filePath: filePath,
+            success: () => {
+              savedCount++
+              fs.unlinkSync(filePath)
+              this.checkSaveComplete(savedCount, failCount, total)
+            },
+            fail: (err) => {
+              failCount++
+              fs.unlinkSync(filePath)
+              this.checkSaveComplete(savedCount, failCount, total)
             }
-          }
-        })
-      },
-      fail: (err) => {
-        console.log('写入文件失败:', err)
-        wx.showToast({ title: '保存失败', icon: 'none' })
-      }
+          })
+        },
+        fail: () => {
+          failCount++
+          this.checkSaveComplete(savedCount, failCount, total)
+        }
+      })
     })
+  },
+
+  checkSaveComplete(savedCount, failCount, total) {
+    if (savedCount + failCount === total) {
+      wx.hideLoading()
+      wx.showModal({
+        title: '保存完成',
+        content: `成功: ${savedCount} 张\n失败: ${failCount} 张`,
+        showCancel: false
+      })
+      
+      // 清除选择状态
+      const cloudImages = this.data.cloudImages.map(img => ({ ...img, selected: false }))
+      this.setData({ cloudImages, cloudSelectedCount: 0 })
+    }
   }
 })
