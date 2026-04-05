@@ -53,7 +53,7 @@
 
   <!-- 调试日志 -->
   <view class="log-panel">
-    <text class="log-title">调试日志 ({{logMsgs.length}})</text>
+    <text class="log-title">日志 ({{logMsgs.length}})</text>
     <scroll-view class="log-scroll" scroll-y scroll-into-view="log-top">
       <text id="log-top"></text>
       <text class="log-line" wx:for="{{logMsgs}}" wx:key="index">{{item}}</text>
