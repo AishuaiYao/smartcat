@@ -19,6 +19,9 @@ Page({
   frameSize: 19200,
 
   onLoad(options) {
+    console.log('[Collect] ========== 页面加载 ==========')
+    console.log('[Collect] debug=' + options.debug + ', connected=' + app.globalData.connected)
+    
     if (options.debug === '1') {
       this.setData({ debugMode: true, streaming: true })
       this.generateDebugImage()
@@ -26,11 +29,13 @@ Page({
     }
     
     if (!app.globalData.connected) {
+      console.log('[Collect] !!! 设备未连接，返回')
       wx.showToast({ title: '设备未连接', icon: 'none' })
       wx.navigateBack()
       return
     }
     
+    console.log('[Collect] 注册回调，初始化UDP')
     this.registerCallbacks()
     this.setupUDP()
   },
@@ -275,16 +280,19 @@ Page({
   },
 
   onLeft() {
+    console.log('[Collect] >>> 左转按钮')
     if (this.data.debugMode) return
     app.sendCommand('MOTOR_LEFT')
   },
 
   onRight() {
+    console.log('[Collect] >>> 右转按钮')
     if (this.data.debugMode) return
     app.sendCommand('MOTOR_RIGHT')
   },
 
   onStop() {
+    console.log('[Collect] >>> 停止按钮')
     if (this.data.debugMode) return
     app.sendCommand('MOTOR_STOP')
   },

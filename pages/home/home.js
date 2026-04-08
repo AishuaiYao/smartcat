@@ -32,6 +32,7 @@ Page({
   },
 
   onFabTap() {
+    console.log('[Home] 点击搜索按钮')
     this.setData({ showRadar: true, showConfirm: false, radarStatus: '搜索设备中...' })
     this.searchDevice()
   },
@@ -50,42 +51,56 @@ Page({
   },
 
   searchDevice() {
+    console.log('[Home] ========== 开始搜索设备 ==========')
+    console.log('[Home] 目标地址: ' + this.data.esp32IP + ':' + this.data.esp32Port)
+    
     const socket = wx.createTCPSocket()
     if (!socket) {
+      console.log('[Home] !!! 创建TCPSocket失败')
       this.setData({ radarStatus: '创建连接失败' })
       return
     }
+    console.log('[Home] TCPSocket创建成功')
     this.socket = socket
 
     socket.onConnect(() => {
+      console.log('[Home] TCP连接成功，发送HELLO握手')
       this.setData({ radarStatus: '握手ing...' })
       socket.write('HELLO\n')
     })
 
     socket.onMessage(res => {
       const info = String.fromCharCode(...new Uint8Array(res.message)).trim()
+      console.log('[Home] <<< 收到设备响应: ' + info)
       const parts = info.split('|')
       const name = parts[0] || '未知设备'
       const icon = parts[1] || '📦'
       const mac = parts[2] || ''
+      console.log('[Home] 设备信息: name=' + name + ', icon=' + icon + ', mac=' + mac)
       this.setData({ radarStatus: '设备已找到!', showConfirm: true, deviceName: name, deviceIcon: icon, deviceMac: mac })
     })
 
     socket.onClose(() => {
+      console.log('[Home] TCP连接关闭')
       if (this.data.showRadar && !this.data.showConfirm) {
+        console.log('[Home] 连接超时')
         this.setData({ radarStatus: '连接超时' })
         setTimeout(() => this.closeRadar(), 1500)
       }
     })
 
-    socket.onError(() => {
+    socket.onError((err) => {
+      console.log('[Home] !!! TCP连接错误:', err)
       if (this.data.showRadar && !this.data.showConfirm) {
+        console.log('[Home] 连接失败')
         this.setData({ radarStatus: '连接失败' })
         setTimeout(() => this.closeRadar(), 1500)
       }
     })
 
+    console.log('[Home] >>> 发起TCP连接...')
     socket.connect({ address: this.data.esp32IP, port: this.data.esp32Port })
+    console.log('[Home] ====================================')
   },
 
   onConfirm() {
@@ -110,32 +125,39 @@ Page({
 
   onCardTap(e) {
     const device = e.currentTarget.dataset.device
+    console.log('[Home] 点击设备卡片: ' + device.name)
     wx.showLoading({ title: '连接中...', mask: true })
 
     const socket = wx.createTCPSocket()
     this.testSocket = socket
 
     socket.onConnect(() => {
+      console.log('[Home] 设备连接成功，发送HELLO')
       socket.write('HELLO\n')
     })
 
     socket.onMessage(res => {
+      const info = String.fromCharCode(...new Uint8Array(res.message)).trim()
+      console.log('[Home] 设备响应: ' + info)
       wx.hideLoading()
       socket.close()
       this.testSocket = null
       wx.navigateTo({ url: `/pages/device/device?name=${device.name}&icon=${device.icon}&mac=${device.mac}` })
     })
 
-    socket.onError(() => {
+    socket.onError((err) => {
+      console.log('[Home] !!! 设备连接错误:', err)
       wx.hideLoading()
       wx.showToast({ title: '无法连接设备', icon: 'none' })
       this.testSocket = null
     })
 
     socket.onClose(() => {
+      console.log('[Home] 设备连接关闭')
       wx.hideLoading()
     })
 
+    console.log('[Home] >>> 连接设备: ' + this.data.esp32IP + ':' + this.data.esp32Port)
     socket.connect({ address: this.data.esp32IP, port: this.data.esp32Port })
   },
 
