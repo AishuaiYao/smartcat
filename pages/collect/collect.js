@@ -8,7 +8,7 @@ Page({
     fps: 0,
     debugMode: false,
     running: false,
-    speed: 5,
+    speed: 2,
     savedCount: 0
   },
 
@@ -301,7 +301,12 @@ Page({
     const running = !this.data.running
     this.setData({ running })
     if (this.data.debugMode) return
-    app.sendCommand(running ? 'START' : 'STOP')
+    if (running) {
+      app.sendCommand('START')
+      app.sendCommand('SPEED:' + this.data.speed)
+    } else {
+      app.sendCommand('STOP')
+    }
   },
 
   onSpeedChange(e) {
