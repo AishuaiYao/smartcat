@@ -10,7 +10,9 @@ Page({
     running: false,
     speed: 10,
     savedCount: 0,
-    isCollecting: false
+    isCollecting: false,
+    motorA: 0,
+    motorB: 0
   },
 
   lastFrameTime: 0,
@@ -143,7 +145,17 @@ Page({
     const frameNum = (bytes[0] << 8) | bytes[1]    // 帧号
     const totalChunks = bytes[2]                    // 总分片数
     const chunkIndex = bytes[3]                     // 当前分片索引
-    const chunkData = bytes.slice(4)                // 分片数据
+    let chunkData
+    
+    // 第一分片包含电机PWM值
+    if (chunkIndex === 0 && bytes.length >= 6) {
+      const motorA = bytes[4]
+      const motorB = bytes[5]
+      this.setData({ motorA, motorB })
+      chunkData = bytes.slice(6)
+    } else {
+      chunkData = bytes.slice(4)
+    }
     
     // 初始化或切换帧缓冲区
     if (!this.frameBuffer || this.frameBuffer.frameNum !== frameNum) {

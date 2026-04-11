@@ -131,7 +131,19 @@ Page({
     const socket = wx.createTCPSocket()
     this.testSocket = socket
 
+    // 设置超时：3秒后自动关闭
+    const timeout = setTimeout(() => {
+      console.log('[Home] !!! 连接超时')
+      wx.hideLoading()
+      wx.showToast({ title: '连接超时', icon: 'none' })
+      if (this.testSocket) {
+        this.testSocket.close()
+        this.testSocket = null
+      }
+    }, 3000)
+
     socket.onConnect(() => {
+      clearTimeout(timeout)
       console.log('[Home] 设备连接成功，发送HELLO')
       socket.write('HELLO\n')
     })
@@ -146,6 +158,7 @@ Page({
     })
 
     socket.onError((err) => {
+      clearTimeout(timeout)
       console.log('[Home] !!! 设备连接错误:', err)
       wx.hideLoading()
       wx.showToast({ title: '无法连接设备', icon: 'none' })
@@ -153,6 +166,7 @@ Page({
     })
 
     socket.onClose(() => {
+      clearTimeout(timeout)
       console.log('[Home] 设备连接关闭')
       wx.hideLoading()
     })

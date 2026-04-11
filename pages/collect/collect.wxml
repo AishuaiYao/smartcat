@@ -4,12 +4,18 @@
     <text>{{streaming ? 'FPS:' + fps + ' | Saved:' + savedCount : 'Connecting...'}}</text>
   </view>
 
+  <!-- 状态栏 - 右上角（电机PWM） -->
+  <view class="status-bar-right">
+    <text>MOTOR_A:{{motorA}} MOTOR_B:{{motorB}}</text>
+  </view>
+
   <!-- 顶部控制栏 -->
   <view class="top-control">
     <view class="start-btn {{running ? 'running' : ''}}" bindtap="onStartStop">
       <text>{{running ? '停止' : '启动'}}</text>
     </view>
     <view class="speed-control">
+      <text class="speed-label">速度</text>
       <view class="speed-btn" bindtap="onSpeedDown">-</view>
       <text class="speed-value">{{speed}}</text>
       <view class="speed-btn" bindtap="onSpeedUp">+</view>

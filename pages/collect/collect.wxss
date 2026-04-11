@@ -30,6 +30,19 @@ page {
   font-family: monospace;
 }
 
+.status-bar-right {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  padding: 6rpx 10rpx;
+  color: #4CAF50;
+  font-size: 12rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 4rpx;
+  z-index: 10;
+  font-family: monospace;
+}
+
 /* 顶部控制栏 */
 .top-control {
   position: absolute;
@@ -62,6 +75,11 @@ page {
   background: rgba(0, 0, 0, 0.5);
   padding: 2rpx 15rpx;
   border-radius: 24rpx;
+}
+
+.speed-label {
+  color: #fff;
+  font-size: 20rpx;
 }
 
 .speed-btn {
