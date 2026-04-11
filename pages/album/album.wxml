@@ -88,7 +88,7 @@
   </view>
 
   <!-- 云端图片弹窗 -->
-  <view class="cloud-overlay" wx:if="{{showCloud}}" bindtap="closeCloud">
+  <view class="cloud-overlay" wx:if="{{showCloud}}" bindtap="closeCloud" catchtouchmove="preventBubble">
     <view class="cloud-modal" catchtap="preventBubble">
       <view class="cloud-header">
         <text class="cloud-title">云端图片 ({{cloudImages.length}})</text>
