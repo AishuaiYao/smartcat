@@ -15,7 +15,7 @@ Page({
 
   lastFrameTime: 0,
   udpSocket: null,
-  udpLocalPort: 5001,
+  udpLocalPort: 5002,
   frameBuffer: null,
   frameSize: 19200,
 
@@ -46,7 +46,7 @@ Page({
     this.removeCallbacks()
     
     if (this.udpSocket) {
-      app.sendCommand('STOP')
+      app.sendCommand('STOP_STREAM')
       this.udpSocket.close()
       this.udpSocket = null
     }
