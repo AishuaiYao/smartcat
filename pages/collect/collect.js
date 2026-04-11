@@ -303,8 +303,7 @@ Page({
     this.setData({ running })
     if (this.data.debugMode) return
     if (running) {
-      app.sendCommand('START')
-      app.sendCommand('SPEED:' + this.data.speed)
+      app.sendCommand('START:' + this.data.speed)
       this.setData({ isCollecting: true })
     } else {
       app.sendCommand('MOTOR_STOP')
