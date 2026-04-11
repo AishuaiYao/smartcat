@@ -293,9 +293,9 @@ Page({
   },
 
   onStop() {
-    console.log('[Collect] >>> 停止按钮')
+    console.log('[Collect] >>> 恢复直行')
     if (this.data.debugMode) return
-    app.sendCommand('MOTOR_STOP')
+    app.sendCommand('MOTOR_FORWARD')
   },
 
   onStartStop() {
