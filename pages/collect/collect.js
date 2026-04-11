@@ -8,7 +8,7 @@ Page({
     fps: 0,
     debugMode: false,
     running: false,
-    speed: 2,
+    speed: 10,
     savedCount: 0
   },
 
@@ -313,7 +313,9 @@ Page({
     const speed = e.detail.value
     this.setData({ speed })
     if (this.data.debugMode) return
-    app.sendCommand('SPEED:' + speed)
+    if (this.data.running) {
+      app.sendCommand('SPEED:' + speed)
+    }
   },
 
   generateDebugImage() {
