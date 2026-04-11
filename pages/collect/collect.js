@@ -306,7 +306,7 @@ Page({
       app.sendCommand('START:' + this.data.speed)
       this.setData({ isCollecting: true })
     } else {
-      app.sendCommand('MOTOR_STOP')
+      app.sendCommand('STOP')
       this.setData({ isCollecting: false })
     }
   },
