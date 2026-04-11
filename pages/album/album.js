@@ -13,7 +13,9 @@ Page({
     showCloud: false,
     cloudImages: [],
     cloudLoading: false,
-    cloudSelectedCount: 0
+    cloudSelectedCount: 0,
+    cloudPage: 0,
+    cloudHasMore: true
   },
 
   onLoad(options) {
@@ -349,8 +351,8 @@ Page({
   // 云端功能
   openCloud() {
     // 显示加载状态
-    this.setData({ showCloud: true, cloudLoading: true, cloudImages: [], cloudSelectedCount: 0 })
-    
+    this.setData({ showCloud: true, cloudLoading: true, cloudImages: [], cloudSelectedCount: 0, cloudPage: 0, cloudHasMore: true })
+
     // 直接尝试加载云端数据
     this.loadCloudImages()
   },
@@ -365,12 +367,16 @@ Page({
 
   loadCloudImages() {
     const db = wx.cloud.database()
+    const pageSize = 20
+    const page = this.data.cloudPage
+
     db.collection('dataset')
       .orderBy('uploadedAt', 'desc')
-      .limit(100)
+      .skip(page * pageSize)
+      .limit(pageSize)
       .get({
         success: (res) => {
-          const cloudImages = res.data.map(item => ({
+          const newImages = res.data.map(item => ({
             _id: item._id,
             image: 'data:image/png;base64,' + item.image,
             time: item.time || item.uploadedAt,
@@ -378,12 +384,22 @@ Page({
             height: item.height || 120,
             selected: false
           }))
-          this.setData({ cloudImages, cloudLoading: false, cloudSelectedCount: 0 })
+
+          const cloudImages = this.data.cloudImages.concat(newImages)
+          const hasMore = res.data.length === pageSize
+
+          this.setData({
+            cloudImages,
+            cloudLoading: false,
+            cloudSelectedCount: 0,
+            cloudHasMore: hasMore,
+            cloudPage: page + 1
+          })
         },
         fail: (err) => {
           console.log('加载云端图片失败:', err)
           this.setData({ showCloud: false, cloudLoading: false })
-          
+
           // 根据错误判断是否网络问题
           const errMsg = err.errMsg || ''
           if (errMsg.includes('timeout') || errMsg.includes('network') || errMsg.includes('request:fail')) {

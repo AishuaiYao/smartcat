@@ -119,6 +119,12 @@
             </view>
           </view>
         </view>
+        <view class="load-more" wx:if="{{cloudHasMore}}" bindtap="loadCloudImages">
+          <text class="load-more-text">加载更多</text>
+        </view>
+        <view class="no-more" wx:if="{{!cloudHasMore && cloudImages.length > 0}}">
+          <text class="no-more-text">已加载全部</text>
+        </view>
       </scroll-view>
 
       <view class="cloud-loading" wx:if="{{cloudLoading}}">

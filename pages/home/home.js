@@ -126,13 +126,20 @@ Page({
   onCardTap(e) {
     const device = e.currentTarget.dataset.device
     console.log('[Home] 点击设备卡片: ' + device.name)
+
+    if (this.connecting) {
+      console.log('[Home] !!! 正在连接中，忽略重复点击')
+      return
+    }
+
+    this.connecting = true
     wx.showLoading({ title: '连接中...', mask: true })
 
     const socket = wx.createTCPSocket()
     this.testSocket = socket
 
     // 设置超时：3秒后自动关闭
-    const timeout = setTimeout(() => {
+    this.connectTimeout = setTimeout(() => {
       console.log('[Home] !!! 连接超时')
       wx.hideLoading()
       wx.showToast({ title: '连接超时', icon: 'none' })
@@ -140,35 +147,44 @@ Page({
         this.testSocket.close()
         this.testSocket = null
       }
+      this.connecting = false
     }, 3000)
 
     socket.onConnect(() => {
-      clearTimeout(timeout)
+      if (!this.connecting) return
+      clearTimeout(this.connectTimeout)
       console.log('[Home] 设备连接成功，发送HELLO')
       socket.write('HELLO\n')
     })
 
     socket.onMessage(res => {
+      if (!this.connecting) return
+      clearTimeout(this.connectTimeout)
       const info = String.fromCharCode(...new Uint8Array(res.message)).trim()
       console.log('[Home] 设备响应: ' + info)
       wx.hideLoading()
       socket.close()
       this.testSocket = null
+      this.connecting = false
       wx.navigateTo({ url: `/pages/device/device?name=${device.name}&icon=${device.icon}&mac=${device.mac}` })
     })
 
     socket.onError((err) => {
-      clearTimeout(timeout)
+      if (!this.connecting) return
+      clearTimeout(this.connectTimeout)
       console.log('[Home] !!! 设备连接错误:', err)
       wx.hideLoading()
       wx.showToast({ title: '无法连接设备', icon: 'none' })
       this.testSocket = null
+      this.connecting = false
     })
 
     socket.onClose(() => {
-      clearTimeout(timeout)
+      clearTimeout(this.connectTimeout)
       console.log('[Home] 设备连接关闭')
       wx.hideLoading()
+      this.testSocket = null
+      this.connecting = false
     })
 
     console.log('[Home] >>> 连接设备: ' + this.data.esp32IP + ':' + this.data.esp32Port)
