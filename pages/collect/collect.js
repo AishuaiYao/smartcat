@@ -311,11 +311,20 @@ Page({
     }
   },
 
-  onSpeedChange(e) {
-    const speed = e.detail.value
+  onSpeedUp() {
+    if (this.data.speed >= 20) return
+    const speed = this.data.speed + 1
     this.setData({ speed })
-    if (this.data.debugMode) return
-    if (this.data.running) {
+    if (this.data.running && !this.data.debugMode) {
+      app.sendCommand('SPEED:' + speed)
+    }
+  },
+
+  onSpeedDown() {
+    if (this.data.speed <= 1) return
+    const speed = this.data.speed - 1
+    this.setData({ speed })
+    if (this.data.running && !this.data.debugMode) {
       app.sendCommand('SPEED:' + speed)
     }
   },

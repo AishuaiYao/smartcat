@@ -10,9 +10,9 @@
       <text>{{running ? '停止' : '启动'}}</text>
     </view>
     <view class="speed-control">
-      <text class="speed-label">速度</text>
-      <slider class="speed-slider" min="1" max="20" value="{{speed}}" block-size="20" activeColor="#4CAF50" backgroundColor="#333" bindchange="onSpeedChange" />
+      <view class="speed-btn" bindtap="onSpeedDown">-</view>
       <text class="speed-value">{{speed}}</text>
+      <view class="speed-btn" bindtap="onSpeedUp">+</view>
     </view>
   </view>
 

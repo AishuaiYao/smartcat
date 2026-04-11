@@ -64,20 +64,29 @@ page {
   border-radius: 24rpx;
 }
 
-.speed-label {
+.speed-btn {
+  width: 40rpx;
+  height: 40rpx;
+  background: #4CAF50;
   color: #fff;
-  font-size: 20rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 40rpx;
 }
 
-.speed-slider {
-  width: 120rpx;
+.speed-btn:active {
+  background: #388E3C;
 }
 
 .speed-value {
   color: #4CAF50;
   font-size: 20rpx;
   font-weight: bold;
-  min-width: 24rpx;
+  min-width: 30rpx;
   text-align: center;
 }
 
