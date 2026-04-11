@@ -9,7 +9,8 @@ Page({
     debugMode: false,
     running: false,
     speed: 10,
-    savedCount: 0
+    savedCount: 0,
+    isCollecting: false
   },
 
   lastFrameTime: 0,
@@ -246,7 +247,7 @@ Page({
           console.log('[Render] 帧' + frameCount + ': 渲染完成, 耗时' + processTime + 'ms')
         }
         
-        if (frameCount % 10 === 1 && !this.data.debugMode) {
+        if (frameCount % 10 === 1 && !this.data.debugMode && this.data.isCollecting) {
           this.saveImage(res.tempFilePath)
         }
       }
@@ -304,8 +305,10 @@ Page({
     if (running) {
       app.sendCommand('START')
       app.sendCommand('SPEED:' + this.data.speed)
+      this.setData({ isCollecting: true })
     } else {
-      app.sendCommand('STOP')
+      app.sendCommand('MOTOR_STOP')
+      this.setData({ isCollecting: false })
     }
   },
 
