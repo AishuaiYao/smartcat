@@ -8,7 +8,7 @@ Page({
     fps: 0,
     debugMode: false,
     running: false,
-    speed: 10,
+    speed: 20,
     savedCount: 0,
     isCollecting: false,
     motorA: 0,
@@ -324,7 +324,7 @@ Page({
   },
 
   onSpeedUp() {
-    if (this.data.speed >= 20) return
+    if (this.data.speed >= 100) return
     const speed = this.data.speed + 1
     this.setData({ speed })
     if (this.data.running && !this.data.debugMode) {
@@ -333,7 +333,7 @@ Page({
   },
 
   onSpeedDown() {
-    if (this.data.speed <= 1) return
+    if (this.data.speed <= 0) return
     const speed = this.data.speed - 1
     this.setData({ speed })
     if (this.data.running && !this.data.debugMode) {
