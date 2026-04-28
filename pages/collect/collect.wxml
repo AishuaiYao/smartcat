@@ -4,9 +4,9 @@
     <text>{{streaming ? 'FPS:' + fps + ' | Saved:' + savedCount : 'Connecting...'}}</text>
   </view>
 
-  <!-- 状态栏 - 右上角（电机PWM） -->
+  <!-- 状态栏 - 右上角（电机PWM + 编码器脉冲） -->
   <view class="status-bar-right">
-    <text>MOTOR_A:{{motorA}} MOTOR_B:{{motorB}}</text>
+    <text>MOTOR:{{motorA}}/{{motorB}} ENC:{{encoderA}}/{{encoderB}}</text>
   </view>
 
   <!-- 顶部控制栏 -->
