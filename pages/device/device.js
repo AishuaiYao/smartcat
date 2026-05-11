@@ -46,7 +46,9 @@ Page({
 
   onShow() {
     this.log('页面显示')
-    this.setData({ connected: app.globalData.connected })
+    if (!this.data.debugMode) {
+      this.setData({ connected: app.globalData.connected })
+    }
     this.loadSavedImages()
     if (!this.data.debugMode && !this.onMessageBound) {
       this.registerCallbacks()
