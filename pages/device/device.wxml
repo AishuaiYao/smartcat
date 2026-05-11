@@ -18,6 +18,12 @@
     数据采集
   </button>
 
+  <!-- 保存编码器图表按钮 -->
+  <button class="btn btn-chart"
+          bindtap="onSaveEncoderChart">
+    保存编码器图表
+  </button>
+
   <!-- 进度条 -->
   <view class="progress-bar" wx:if="{{capturing}}">
     <view class="progress-fill" style="width: {{progress}}%"></view>

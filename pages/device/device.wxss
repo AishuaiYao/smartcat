@@ -62,6 +62,11 @@
   color: white;
 }
 
+.btn-chart {
+  background-color: #2196F3;
+  color: white;
+}
+
 .btn-album {
   background-color: #722ed1;
   color: white;

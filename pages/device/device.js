@@ -224,5 +224,126 @@ Page({
   goToCollect() {
     this.log('>>> 跳转数据采集页面')
     wx.navigateTo({ url: '/pages/collect/collect' })
+  },
+
+  onSaveEncoderChart() {
+    const chartData = app.globalData.encoderChartData
+    if (!chartData || chartData.count === 0) {
+      wx.showToast({ title: '无编码器数据', icon: 'none' })
+      return
+    }
+
+    this.log('>>> 保存编码器图表，共' + chartData.count + '条数据')
+
+    wx.showLoading({ title: '正在生成图表...' })
+
+    const width = 1800
+    const height = 500
+    const padding = 80
+    const chartWidth = width - padding * 2
+    const chartHeight = height - padding * 2
+    const barWidth = Math.max(chartWidth / chartData.count, 1)
+    const singleBarWidth = Math.max(barWidth / 2 - 1, 1)
+
+    const dataA = chartData.dataA
+    const dataB = chartData.dataB
+    const count = chartData.count
+    const maxVal = Math.max(...dataA.map(Math.abs), ...dataB.map(Math.abs), 1)
+    const scale = chartHeight / 2 / maxVal
+
+    const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
+    const ctx = canvas.getContext('2d')
+
+    // 背景
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, 0, width, height)
+
+    // 标题
+    ctx.fillStyle = '#333333'
+    ctx.font = 'bold 24px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText('Encoder Delta Chart', width / 2, 35)
+
+    // 中线
+    ctx.strokeStyle = '#cccccc'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(padding, padding + chartHeight / 2)
+    ctx.lineTo(width - padding, padding + chartHeight / 2)
+    ctx.stroke()
+
+    // 绘制柱状图
+    for (let i = 0; i < count; i++) {
+      const x = padding + i * barWidth
+      const barH = Math.abs(dataA[i]) * scale
+      const barHB = Math.abs(dataB[i]) * scale
+
+      // 左电机(红色)
+      ctx.fillStyle = '#e74c3c'
+      if (dataA[i] >= 0) {
+        ctx.fillRect(x, padding + chartHeight / 2 - barH, singleBarWidth, barH)
+      } else {
+        ctx.fillRect(x, padding + chartHeight / 2, singleBarWidth, barH)
+      }
+
+      // 右电机(蓝色)
+      ctx.fillStyle = '#3498db'
+      if (dataB[i] >= 0) {
+        ctx.fillRect(x + singleBarWidth + 1, padding + chartHeight / 2 - barHB, singleBarWidth, barHB)
+      } else {
+        ctx.fillRect(x + singleBarWidth + 1, padding + chartHeight / 2, singleBarWidth, barHB)
+      }
+    }
+
+    // 图例
+    ctx.fillStyle = '#e74c3c'
+    ctx.fillRect(width - 140, 15, 16, 16)
+    ctx.fillStyle = '#333333'
+    ctx.font = '14px sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText('Motor A', width - 120, 28)
+
+    ctx.fillStyle = '#3498db'
+    ctx.fillRect(width - 140, 38, 16, 16)
+    ctx.fillStyle = '#333333'
+    ctx.fillText('Motor B', width - 120, 51)
+
+    // Y轴标签
+    ctx.fillStyle = '#666666'
+    ctx.font = '12px sans-serif'
+    ctx.textAlign = 'right'
+    ctx.fillText(maxVal.toFixed(0), padding - 5, padding + 10)
+    ctx.fillText('0', padding - 5, padding + chartHeight / 2 + 4)
+    ctx.fillText((-maxVal).toFixed(0), padding - 5, padding + chartHeight - 2)
+
+    // X轴标签
+    ctx.textAlign = 'center'
+    ctx.fillText('1', padding, height - padding + 20)
+    ctx.fillText(count.toString(), width - padding, height - padding + 20)
+
+    // 保存到相册
+    wx.canvasToTempFilePath({
+      canvas,
+      success: (res) => {
+        wx.hideLoading()
+        wx.saveImageToPhotosAlbum({
+          filePath: res.tempFilePath,
+          success: () => {
+            wx.showToast({ title: '已保存到相册', icon: 'success' })
+            this.log('<<< 图表保存成功')
+            app.globalData.encoderChartData = null
+          },
+          fail: (err) => {
+            console.log('[Chart] 保存失败:', err)
+            wx.showToast({ title: '保存失败', icon: 'none' })
+          }
+        })
+      },
+      fail: (err) => {
+        wx.hideLoading()
+        console.log('[Chart] 生成失败:', err)
+        wx.showToast({ title: '生成失败', icon: 'none' })
+      }
+    })
   }
 })
