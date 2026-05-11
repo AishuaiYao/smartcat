@@ -14,7 +14,8 @@ Page({
     motorA: 0,
     motorB: 0,
     encoderA: 0,
-    encoderB: 0
+    encoderB: 0,
+    voltage: 0
   },
 
   lastFrameTime: 0,
@@ -149,14 +150,16 @@ Page({
     const chunkIndex = bytes[3]                     // 当前分片索引
     let chunkData
     
-    // 第一分片包含电机PWM值和编码器脉冲数
-    if (chunkIndex === 0 && bytes.length >= 10) {
-      const motorA = bytes[4]
-      const motorB = bytes[5]
-      const encoderA = (bytes[6] << 8) | bytes[7]   // 编码器A (int16)
-      const encoderB = (bytes[8] << 8) | bytes[9]   // 编码器B (int16)
-      this.setData({ motorA, motorB, encoderA, encoderB })
-      chunkData = bytes.slice(10)
+    // 第一分片包含电压、电机PWM值和编码器脉冲数
+    if (chunkIndex === 0 && bytes.length >= 11) {
+      const voltageRaw = bytes[4]
+      const voltage = (voltageRaw / 10).toFixed(1)  // 转换为伏特（保留1位小数）
+      const motorA = bytes[5]
+      const motorB = bytes[6]
+      const encoderA = (bytes[7] << 8) | bytes[8]
+      const encoderB = (bytes[9] << 8) | bytes[10]
+      this.setData({ voltage, motorA, motorB, encoderA, encoderB })
+      chunkData = bytes.slice(11)
     } else {
       chunkData = bytes.slice(4)
     }
