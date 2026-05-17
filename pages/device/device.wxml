@@ -18,6 +18,13 @@
     数据采集
   </button>
 
+  <!-- 实验按钮 -->
+  <button class="btn btn-experiment"
+          bindtap="goToExperiment"
+          disabled="{{!connected}}">
+    实验
+  </button>
+
   <!-- 保存编码器图表按钮 -->
   <button class="btn btn-chart"
           bindtap="onSaveEncoderChart">

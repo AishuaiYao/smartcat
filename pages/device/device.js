@@ -226,6 +226,11 @@ Page({
     wx.navigateTo({ url: '/pages/collect/collect' })
   },
 
+  goToExperiment() {
+    this.log('>>> 跳转实验页面')
+    wx.navigateTo({ url: '/pages/experiment/experiment' })
+  },
+
   onSaveEncoderChart() {
     const chartData = app.globalData.encoderChartData
     if (!chartData || chartData.count === 0) {
