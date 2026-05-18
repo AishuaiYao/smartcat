@@ -19,8 +19,8 @@ Page({
   udpLocalPort: 5003,
   frameBuffer: null,
   frameSize: 19200,
-  totalChunks: 8,
-  chunkDataSize: 2400,
+  totalChunks: 3,
+  chunkDataSize: 6400,
 
   onLoad(options) {
     console.log('[Experiment] ========== 页面加载 ==========')
