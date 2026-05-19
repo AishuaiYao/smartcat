@@ -18,8 +18,8 @@ Page({
   udpSocket: null,
   udpLocalPort: 5003,
   frameBuffer: null,
-  frameSize: 19200,
-  totalChunks: 3,
+  frameSize: 38400,  // 拼接图：320x120 = 38400
+  totalChunks: 6,
   chunkDataSize: 6400,
 
   onLoad(options) {
@@ -219,7 +219,8 @@ Page({
   processImage(grayData) {
     const startTime = Date.now()
     
-    const width = 160
+    // 拼接图尺寸：320x120（原图+预测结果）
+    const width = 320
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
 
@@ -277,14 +278,22 @@ Page({
   },
 
   generateDebugImage() {
-    const width = 160
+    // 调试模式：生成左侧灰度渐变（原图模拟）+ 右侧二值图（预测结果模拟）
+    const width = 320
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
     
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const i = (y * width + x) * 4
-        const gray = Math.floor((x / width) * 255)
+        let gray
+        if (x < 160) {
+          // 左侧：灰度渐变模拟原图
+          gray = Math.floor((x / 160) * 255)
+        } else {
+          // 右侧：黑白二值模拟预测结果
+          gray = (x % 2 === 0) ? 0 : 255
+        }
         rgbaData[i] = gray
         rgbaData[i + 1] = gray
         rgbaData[i + 2] = gray
