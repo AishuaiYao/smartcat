@@ -9,6 +9,7 @@ Page({
     debugMode: false,
     running: false,
     speed: 20,
+    kp: 0.50,
     motorA: 0,
     motorB: 0,
     voltage: 0
@@ -274,6 +275,24 @@ Page({
     this.setData({ speed })
     if (this.data.running && !this.data.debugMode) {
       app.sendCommand('SPEED:' + speed)
+    }
+  },
+
+  onKpUp() {
+    if (this.data.kp >= 5.0) return
+    const kp = parseFloat((this.data.kp + 0.05).toFixed(2))
+    this.setData({ kp })
+    if (!this.data.debugMode) {
+      app.sendCommand('KP:' + kp.toFixed(2))
+    }
+  },
+
+  onKpDown() {
+    if (this.data.kp <= 0) return
+    const kp = parseFloat((this.data.kp - 0.05).toFixed(2))
+    this.setData({ kp })
+    if (!this.data.debugMode) {
+      app.sendCommand('KP:' + kp.toFixed(2))
     }
   },
 

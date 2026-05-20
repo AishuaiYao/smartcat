@@ -20,6 +20,12 @@
       <text class="speed-value">{{speed}}</text>
       <view class="speed-btn" bindtap="onSpeedUp">+</view>
     </view>
+    <view class="kp-control">
+      <text class="kp-label">Kp</text>
+      <view class="kp-btn" bindtap="onKpDown">-</view>
+      <text class="kp-value">{{kp}}</text>
+      <view class="kp-btn" bindtap="onKpUp">+</view>
+    </view>
   </view>
 
   <!-- 图像区 - 居中 -->

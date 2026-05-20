@@ -22,7 +22,7 @@ page {
   top: 20rpx;
   left: 20rpx;
   padding: 6rpx 10rpx;
-  color: #2196F3;
+  color: #4CAF50;
   font-size: 12rpx;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 4rpx;
@@ -35,7 +35,7 @@ page {
   top: 20rpx;
   right: 20rpx;
   padding: 6rpx 10rpx;
-  color: #2196F3;
+  color: #4CAF50;
   font-size: 12rpx;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 4rpx;
@@ -43,6 +43,7 @@ page {
   font-family: monospace;
 }
 
+/* 顶部控制栏 */
 .top-control {
   position: absolute;
   top: 1rpx;
@@ -56,7 +57,7 @@ page {
 
 .start-btn {
   padding: 2rpx 20rpx;
-  background: #2196F3;
+  background: #4CAF50;
   color: #fff;
   font-size: 20rpx;
   font-weight: bold;
@@ -84,7 +85,7 @@ page {
 .speed-btn {
   width: 40rpx;
   height: 40rpx;
-  background: #2196F3;
+  background: #4CAF50;
   color: #fff;
   font-size: 28rpx;
   font-weight: bold;
@@ -96,14 +97,54 @@ page {
 }
 
 .speed-btn:active {
-  background: #1976D2;
+  background: #388E3C;
 }
 
 .speed-value {
-  color: #2196F3;
+  color: #4CAF50;
   font-size: 20rpx;
   font-weight: bold;
   min-width: 30rpx;
+  text-align: center;
+}
+
+.kp-control {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2rpx 15rpx;
+  border-radius: 24rpx;
+}
+
+.kp-label {
+  color: #fff;
+  font-size: 20rpx;
+}
+
+.kp-btn {
+  width: 40rpx;
+  height: 40rpx;
+  background: #FF9800;
+  color: #fff;
+  font-size: 28rpx;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 40rpx;
+}
+
+.kp-btn:active {
+  background: #F57C00;
+}
+
+.kp-value {
+  color: #FF9800;
+  font-size: 20rpx;
+  font-weight: bold;
+  min-width: 40rpx;
   text-align: center;
 }
 
