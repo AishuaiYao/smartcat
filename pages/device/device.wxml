@@ -25,27 +25,17 @@
     实验
   </button>
 
-  <!-- 保存编码器图表按钮 -->
-  <button class="btn btn-chart"
-          bindtap="onSaveEncoderChart">
-    保存编码器图表
-  </button>
 
-  <!-- 进度条 -->
-  <view class="progress-bar" wx:if="{{capturing}}">
-    <view class="progress-fill" style="width: {{progress}}%"></view>
-  </view>
+  <!-- 打开相册 -->
+  <button class="btn btn-album" bindtap="goToAlbum">
+    打开相册
+  </button>
 
   <!-- 当前拍摄预览 -->
   <view class="preview-section" wx:if="{{imageData}}">
     <text class="section-title">当前拍摄</text>
     <image class="preview-image" src="{{imageData}}" mode="widthFix"></image>
   </view>
-
-  <!-- 打开相册 -->
-  <button class="btn btn-album" bindtap="goToAlbum">
-    打开相册
-  </button>
 
   <!-- 使用提示 -->
   <view class="tips">

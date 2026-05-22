@@ -22,8 +22,9 @@ page {
   top: 20rpx;
   left: 20rpx;
   padding: 6rpx 10rpx;
-  color: #4CAF50;
+  color: #FF9800;
   font-size: 12rpx;
+  line-height: 1.4;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 4rpx;
   z-index: 10;
@@ -35,12 +36,15 @@ page {
   top: 20rpx;
   right: 20rpx;
   padding: 6rpx 10rpx;
-  color: #4CAF50;
+  color: #FF9800;
   font-size: 12rpx;
+  line-height: 1.4;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 4rpx;
   z-index: 10;
   font-family: monospace;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 顶部控制栏 */
@@ -57,7 +61,7 @@ page {
 
 .start-btn {
   padding: 2rpx 20rpx;
-  background: #4CAF50;
+  background: #FF9800;
   color: #fff;
   font-size: 20rpx;
   font-weight: bold;
@@ -85,7 +89,7 @@ page {
 .speed-btn {
   width: 40rpx;
   height: 40rpx;
-  background: #4CAF50;
+  background: #FF9800;
   color: #fff;
   font-size: 28rpx;
   font-weight: bold;
@@ -97,11 +101,11 @@ page {
 }
 
 .speed-btn:active {
-  background: #388E3C;
+  background: #F57C00;
 }
 
 .speed-value {
-  color: #4CAF50;
+  color: #FF9800;
   font-size: 20rpx;
   font-weight: bold;
   min-width: 30rpx;
@@ -175,4 +179,19 @@ page {
   border-top: 30rpx solid transparent;
   border-bottom: 30rpx solid transparent;
   border-left: 50rpx solid #fff;
+}
+
+.save-chart-btn {
+  width: 40rpx;
+  height: 40rpx;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+}
+
+.save-chart-btn:active {
+  background: rgba(255, 255, 255, 0.2);
 }

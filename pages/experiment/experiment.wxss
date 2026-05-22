@@ -22,8 +22,9 @@ page {
   top: 20rpx;
   left: 20rpx;
   padding: 6rpx 10rpx;
-  color: #4CAF50;
+  color: #9C27B0;
   font-size: 12rpx;
+  line-height: 1.4;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 4rpx;
   z-index: 10;
@@ -35,8 +36,9 @@ page {
   top: 20rpx;
   right: 20rpx;
   padding: 6rpx 10rpx;
-  color: #4CAF50;
+  color: #9C27B0;
   font-size: 12rpx;
+  line-height: 1.4;
   background: rgba(0, 0, 0, 0.6);
   border-radius: 4rpx;
   z-index: 10;
@@ -58,7 +60,7 @@ page {
 
 .start-btn {
   padding: 2rpx 20rpx;
-  background: #4CAF50;
+  background: #9C27B0;
   color: #fff;
   font-size: 16rpx;
   font-weight: bold;
@@ -86,7 +88,7 @@ page {
 .speed-btn {
   width: 40rpx;
   height: 40rpx;
-  background: #4CAF50;
+  background: #9C27B0;
   color: #fff;
   font-size: 22rpx;
   font-weight: bold;
@@ -98,11 +100,11 @@ page {
 }
 
 .speed-btn:active {
-  background: #388E3C;
+  background: #7B1FA2;
 }
 
 .speed-value {
-  color: #4CAF50;
+  color: #9C27B0;
   font-size: 16rpx;
   font-weight: bold;
   min-width: 30rpx;
@@ -126,7 +128,7 @@ page {
 .kp-btn {
   width: 40rpx;
   height: 40rpx;
-  background: #FF9800;
+  background: #9C27B0;
   color: #fff;
   font-size: 22rpx;
   font-weight: bold;
@@ -138,11 +140,11 @@ page {
 }
 
 .kp-btn:active {
-  background: #F57C00;
+  background: #7B1FA2;
 }
 
 .kp-value {
-  color: #FF9800;
+  color: #9C27B0;
   font-size: 16rpx;
   font-weight: bold;
   min-width: 30rpx;

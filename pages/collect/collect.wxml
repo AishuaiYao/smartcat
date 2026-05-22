@@ -6,7 +6,8 @@
 
   <!-- 状态栏 - 右上角（电机PWM + 编码器脉冲） -->
   <view class="status-bar-right">
-    <text>MOTOR:{{motorA}}/{{motorB}} ENC:{{encoderA}}/{{encoderB}}</text>
+    <text>MOTOR:{{motorA}}/{{motorB}}</text>
+    <text>ENC:{{encoderA}}/{{encoderB}}</text>
   </view>
 
   <!-- 顶部控制栏 -->
@@ -20,6 +21,7 @@
       <text class="speed-value">{{speed}}</text>
       <view class="speed-btn" bindtap="onSpeedUp">+</view>
     </view>
+    <view class="save-chart-btn" bindtap="onSaveChart">💾</view>
   </view>
 
   <!-- 图像区 - 居中 -->

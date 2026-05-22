@@ -67,11 +67,6 @@
   color: white;
 }
 
-.btn-chart {
-  background-color: #2196F3;
-  color: white;
-}
-
 .btn-album {
   background-color: #722ed1;
   color: white;
@@ -152,22 +147,6 @@
   font-size: 24rpx;
   color: #666;
   line-height: 1.5;
-}
-
-.progress-bar {
-  width: 400rpx;
-  height: 16rpx;
-  background-color: #e0e0e0;
-  border-radius: 8rpx;
-  margin: 10rpx 0 20rpx;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: #1890ff;
-  border-radius: 8rpx;
-  transition: width 0.2s;
 }
 
 .log-panel {
