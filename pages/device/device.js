@@ -223,12 +223,12 @@ Page({
 
   goToCollect() {
     this.log('>>> 跳转数据采集页面')
-    wx.navigateTo({ url: '/pages/collect/collect' })
+    wx.navigateTo({ url: '/pages/collect/collect' + (this.data.debugMode ? '?debug=1' : '') })
   },
 
   goToExperiment() {
     this.log('>>> 跳转实验页面')
-    wx.navigateTo({ url: '/pages/experiment/experiment' })
+    wx.navigateTo({ url: '/pages/experiment/experiment' + (this.data.debugMode ? '?debug=1' : '') })
   },
 
   onSaveEncoderChart() {

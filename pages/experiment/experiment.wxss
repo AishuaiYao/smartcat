@@ -51,15 +51,16 @@ page {
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 12rpx;
   z-index: 10;
+  white-space: nowrap;
 }
 
 .start-btn {
   padding: 2rpx 20rpx;
   background: #4CAF50;
   color: #fff;
-  font-size: 20rpx;
+  font-size: 16rpx;
   font-weight: bold;
   border-radius: 24rpx;
 }
@@ -79,7 +80,7 @@ page {
 
 .speed-label {
   color: #fff;
-  font-size: 20rpx;
+  font-size: 16rpx;
 }
 
 .speed-btn {
@@ -87,7 +88,7 @@ page {
   height: 40rpx;
   background: #4CAF50;
   color: #fff;
-  font-size: 28rpx;
+  font-size: 22rpx;
   font-weight: bold;
   border-radius: 50%;
   display: flex;
@@ -102,7 +103,7 @@ page {
 
 .speed-value {
   color: #4CAF50;
-  font-size: 20rpx;
+  font-size: 16rpx;
   font-weight: bold;
   min-width: 30rpx;
   text-align: center;
@@ -119,7 +120,7 @@ page {
 
 .kp-label {
   color: #fff;
-  font-size: 20rpx;
+  font-size: 16rpx;
 }
 
 .kp-btn {
@@ -127,7 +128,7 @@ page {
   height: 40rpx;
   background: #FF9800;
   color: #fff;
-  font-size: 28rpx;
+  font-size: 22rpx;
   font-weight: bold;
   border-radius: 50%;
   display: flex;
@@ -142,9 +143,9 @@ page {
 
 .kp-value {
   color: #FF9800;
-  font-size: 20rpx;
+  font-size: 16rpx;
   font-weight: bold;
-  min-width: 40rpx;
+  min-width: 30rpx;
   text-align: center;
 }
 
