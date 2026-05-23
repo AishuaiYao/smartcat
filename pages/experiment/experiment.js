@@ -5,7 +5,7 @@ Page({
     imageData: null,
     frameCount: 0,
     streaming: false,
-    fps: 0,
+    delayMs: 0,
     debugMode: false,
     running: false,
     speed: 20,
@@ -187,9 +187,8 @@ Page({
       if (grayData && grayData.length === this.frameSize) {
         const now = Date.now()
         if (this.lastFrameTime > 0) {
-          const delta = now - this.lastFrameTime
-          const fps = delta > 0 ? Math.round(1000 / delta) : 0
-          this.setData({ fps })
+          const delayMs = now - this.lastFrameTime
+          this.setData({ delayMs })
         }
         this.lastFrameTime = now
         

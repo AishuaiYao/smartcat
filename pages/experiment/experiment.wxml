@@ -1,7 +1,7 @@
 <view class="container">
   <!-- 状态栏 - 左上角 -->
   <view class="status-bar">
-    <text>{{streaming ? 'FPS:' + fps + ' | ' + voltage + 'V' : 'Connecting...'}}</text>
+    <text>{{streaming ? delayMs + 'ms | ' + voltage + 'V' : 'Connecting...'}}</text>
   </view>
 
   <!-- 状态栏 - 右上角（电机PWM） -->
