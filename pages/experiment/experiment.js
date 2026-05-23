@@ -148,15 +148,19 @@ Page({
     const chunkIndex = bytes[3]
     let chunkData
     
-    // 第一分片(0)：[协议头4B][电压1B][左PWM 1B][右PWM 1B][图像数据...]
+    // 第一分片(0)：[协议头4B][电压1B][左PWM 1B][右PWM 1B][引导线x 1B][图像数据...]
     // 其他分片：[协议头4B][图像数据...]
-    if (chunkIndex === 0 && bytes.length >= 7) {
+    if (chunkIndex === 0 && bytes.length >= 8) {
       const voltageRaw = bytes[4]
       const voltage = (voltageRaw / 10).toFixed(1)
       const motorA = Math.round(bytes[5] * 100 / 255)
       const motorB = Math.round(bytes[6] * 100 / 255)
       this.setData({ voltage, motorA, motorB })
-      chunkData = bytes.slice(7)
+      // 提取 PID 引导线数据
+      this._pidData = {
+        guide_x: bytes[7]
+      }
+      chunkData = bytes.slice(8)
     } else {
       chunkData = bytes.slice(4)
     }
@@ -192,7 +196,8 @@ Page({
         const frameCount = this.data.frameCount + 1
         this.setData({ frameCount })
         
-        this.processImage(grayData)
+        this.processImage(grayData, this._pidData)
+        this._pidData = null
       } else {
         console.log('[UDP] 组帧失败，长度:', grayData ? grayData.length : 0)
       }
@@ -217,10 +222,10 @@ Page({
     return grayData
   },
 
-  processImage(grayData) {
+  processImage(grayData, pidData) {
     const startTime = Date.now()
     
-    // 拼接图尺寸：320x120（原图+预测结果）
+    // 拼接图尺寸：320x120（左半原图 + 右半预测图）
     const width = 320
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
@@ -237,6 +242,55 @@ Page({
     const imgData = ctx.createImageData(width, height)
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
+
+    // ========== 在右侧预测图上绘制目标点和引导点 ==========
+    if (pidData) {
+      const offsetX = 160  // 右半预测图起始 x
+      const { guide_x } = pidData
+      const target_x = 80  // 图像中心，固定值
+      const centerY = 60   // 图像水平中心线 y
+
+      // 绘制中心十字线（绿色虚线）
+      ctx.beginPath()
+      ctx.setLineDash([4, 4])
+      ctx.moveTo(offsetX + 10, centerY)
+      ctx.lineTo(offsetX + 150, centerY)
+      ctx.moveTo(offsetX + 80, 10)
+      ctx.lineTo(offsetX + 80, 110)
+      ctx.strokeStyle = '#00CC00'
+      ctx.lineWidth = 1
+      ctx.stroke()
+      ctx.setLineDash([])
+
+      // 绘制目标点 target（绿色空心圆）
+      ctx.beginPath()
+      ctx.arc(offsetX + target_x, centerY, 5, 0, 2 * Math.PI)
+      ctx.strokeStyle = '#00FF00'
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // 绘制偏差连线（target → guide）
+      ctx.beginPath()
+      ctx.moveTo(offsetX + target_x, centerY)
+      ctx.lineTo(offsetX + guide_x, centerY)
+      ctx.strokeStyle = '#00FF00'
+      ctx.lineWidth = 2
+      ctx.stroke()
+
+      // 绘制偏差像素值文字
+      const errorPx = target_x - guide_x
+      const midX = offsetX + (target_x + guide_x) / 2
+      ctx.font = 'bold 11px monospace'
+      ctx.fillStyle = '#00FF00'
+      ctx.textAlign = 'center'
+      ctx.fillText(errorPx + 'px', midX, centerY - 8)
+
+      // 绘制引导点 guide（浅紫色实心圆）
+      ctx.beginPath()
+      ctx.arc(offsetX + guide_x, centerY, 4, 0, 2 * Math.PI)
+      ctx.fillStyle = '#CC88FF'
+      ctx.fill()
+    }
 
     wx.canvasToTempFilePath({
       canvas,
@@ -297,7 +351,7 @@ Page({
   },
 
   generateDebugImage() {
-    // 调试模式：生成左侧灰度渐变（原图模拟）+ 右侧二值图（预测结果模拟）
+    // 调试模式：生成左侧灰度渐变（原图模拟）+ 右侧二值图（预测结果模拟）+ 示例引导线叠加
     const width = 320
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
@@ -310,8 +364,12 @@ Page({
           // 左侧：灰度渐变模拟原图
           gray = Math.floor((x / 160) * 255)
         } else {
-          // 右侧：黑白二值模拟预测结果
-          gray = (x % 2 === 0) ? 0 : 255
+          // 右侧：黑白二值模拟预测结果（中间白色竖条模拟引导线）
+          if (x >= 220 && x <= 260 && y >= 20 && y <= 100) {
+            gray = 255
+          } else {
+            gray = 0
+          }
         }
         rgbaData[i] = gray
         rgbaData[i + 1] = gray
@@ -325,6 +383,51 @@ Page({
     const imgData = ctx.createImageData(width, height)
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
+
+    // 示例目标点和引导点叠加
+    const offsetX = 160
+    const targetX = 80, guideX = 75
+
+    // 中心十字线（绿色虚线）
+    ctx.beginPath()
+    ctx.setLineDash([4, 4])
+    ctx.moveTo(offsetX + 10, 60)
+    ctx.lineTo(offsetX + 150, 60)
+    ctx.moveTo(offsetX + 80, 10)
+    ctx.lineTo(offsetX + 80, 110)
+    ctx.strokeStyle = '#00CC00'
+    ctx.lineWidth = 1
+    ctx.stroke()
+    ctx.setLineDash([])
+
+    // 目标点（绿色空心）
+    ctx.beginPath()
+    ctx.arc(offsetX + targetX, 60, 5, 0, 2 * Math.PI)
+    ctx.strokeStyle = '#00FF00'
+    ctx.lineWidth = 2
+    ctx.stroke()
+
+    // 偏差连线
+    ctx.beginPath()
+    ctx.moveTo(offsetX + targetX, 60)
+    ctx.lineTo(offsetX + guideX, 60)
+    ctx.strokeStyle = '#00FF00'
+    ctx.lineWidth = 2
+    ctx.stroke()
+
+    // 偏差像素值文字
+    const errorPx = targetX - guideX
+    const midX = offsetX + (targetX + guideX) / 2
+    ctx.font = 'bold 11px monospace'
+    ctx.fillStyle = '#00FF00'
+    ctx.textAlign = 'center'
+    ctx.fillText(errorPx + 'px', midX, 60 - 8)
+
+    // 引导点（浅紫色实心）
+    ctx.beginPath()
+    ctx.arc(offsetX + guideX, 60, 4, 0, 2 * Math.PI)
+    ctx.fillStyle = '#CC88FF'
+    ctx.fill()
     
     wx.canvasToTempFilePath({
       canvas,
