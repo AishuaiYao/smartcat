@@ -19,9 +19,9 @@ Page({
   udpSocket: null,
   udpLocalPort: 5003,
   frameBuffer: null,
-  frameSize: 38400,  // 拼接图：320x120 = 38400
-  totalChunks: 6,
-  chunkDataSize: 6400,
+  frameSize: 19200,  // 叠加图：160x120 = 19200
+  totalChunks: 14,
+  chunkDataSize: 1400,
 
   onLoad(options) {
     console.log('[Experiment] ========== 页面加载 ==========')
@@ -55,6 +55,7 @@ Page({
       this.udpSocket = null
     }
     this.frameBuffer = null
+    this._chunkLog = null
   },
 
   registerCallbacks() {
@@ -146,7 +147,20 @@ Page({
     const frameNum = (bytes[0] << 8) | bytes[1]
     const totalChunks = bytes[2]
     const chunkIndex = bytes[3]
+    const now = Date.now()
     let chunkData
+    
+    // [诊断] 记录每个分片到达
+    if (!this._chunkLog) this._chunkLog = { lastFrame: -1, chunksReceived: [] }
+    if (this._chunkLog.lastFrame !== frameNum) {
+      if (this._chunkLog.lastFrame >= 0) {
+        console.log('[UDP·诊断] 帧' + this._chunkLog.lastFrame + ' 实际收到' + this._chunkLog.chunksReceived.length + '/' + totalChunks + '片, 缺失: [' +
+          Array.from({length: totalChunks}, (_, i) => i).filter(i => !this._chunkLog.chunksReceived.includes(i)).join(',') + ']')
+      }
+      this._chunkLog = { lastFrame: frameNum, chunksReceived: [chunkIndex] }
+    } else {
+      this._chunkLog.chunksReceived.push(chunkIndex)
+    }
     
     // 第一分片(0)：[协议头4B][电压1B][左PWM 1B][右PWM 1B][引导线x 1B][图像数据...]
     // 其他分片：[协议头4B][图像数据...]
@@ -165,13 +179,20 @@ Page({
       chunkData = bytes.slice(4)
     }
     
-    // 初始化帧缓冲区
+    // 初始化帧缓冲区 (如果是新帧号)
     if (!this.frameBuffer || this.frameBuffer.frameNum !== frameNum) {
+      // [诊断] 帧号跳变检测
+      if (this.frameBuffer && this.frameBuffer.frameNum !== frameNum) {
+        const skipped = frameNum - this.frameBuffer.frameNum - 1
+        const missing = this.frameBuffer.totalChunks - this.frameBuffer.receivedCount
+        console.log('[UDP·诊断] 帧' + this.frameBuffer.frameNum + ' 未完成(缺' + missing + '片), 跳至帧' + frameNum + '(跳过' + skipped + '帧)')
+      }
       this.frameBuffer = {
         frameNum: frameNum,
         totalChunks: totalChunks,
         chunks: new Array(totalChunks),
-        receivedCount: 0
+        receivedCount: 0,
+        firstChunkTime: now
       }
     }
     
@@ -183,22 +204,24 @@ Page({
     
     // 检查是否收齐
     if (this.frameBuffer.receivedCount === this.frameBuffer.totalChunks) {
+      const assemblyTime = now - this.frameBuffer.firstChunkTime
       const grayData = this.assembleFrame()
       if (grayData && grayData.length === this.frameSize) {
-        const now = Date.now()
-        if (this.lastFrameTime > 0) {
-          const delayMs = now - this.lastFrameTime
-          this.setData({ delayMs })
-        }
+        const delayMs = this.lastFrameTime > 0 ? now - this.lastFrameTime : 0
+        this.setData({ delayMs })
         this.lastFrameTime = now
         
         const frameCount = this.data.frameCount + 1
         this.setData({ frameCount })
         
+        // [诊断] 帧组装完成
+        console.log('[UDP·诊断] 帧' + frameNum + ' 组装完成: 收齐' + this.frameBuffer.receivedCount + 
+          '片, 组装耗时' + assemblyTime + 'ms, 帧间隔' + (delayMs || 0) + 'ms')
+        
         this.processImage(grayData, this._pidData)
         this._pidData = null
       } else {
-        console.log('[UDP] 组帧失败，长度:', grayData ? grayData.length : 0)
+        console.log('[UDP·诊断] 帧' + frameNum + ' 组帧失败, 长度=' + (grayData ? grayData.length : 0))
       }
       this.frameBuffer = null
     }
@@ -224,8 +247,8 @@ Page({
   processImage(grayData, pidData) {
     const startTime = Date.now()
     
-    // 拼接图尺寸：320x120（左半原图 + 右半预测图）
-    const width = 320
+    // 叠加图尺寸：160x120（原图 + 预测线亮灰叠加）
+    const width = 160
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
 
@@ -242,9 +265,8 @@ Page({
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
 
-    // ========== 在右侧预测图上绘制目标点和引导点 ==========
+    // ========== 绘制PID目标点和引导点 ==========
     if (pidData) {
-      const offsetX = 160  // 右半预测图起始 x
       const { guide_x } = pidData
       const target_x = 80  // 图像中心，固定值
       const centerY = 60   // 图像水平中心线 y
@@ -252,10 +274,10 @@ Page({
       // 绘制中心十字线（绿色虚线）
       ctx.beginPath()
       ctx.setLineDash([4, 4])
-      ctx.moveTo(offsetX + 10, centerY)
-      ctx.lineTo(offsetX + 150, centerY)
-      ctx.moveTo(offsetX + 80, 10)
-      ctx.lineTo(offsetX + 80, 110)
+      ctx.moveTo(10, centerY)
+      ctx.lineTo(150, centerY)
+      ctx.moveTo(80, 10)
+      ctx.lineTo(80, 110)
       ctx.strokeStyle = '#00CC00'
       ctx.lineWidth = 1
       ctx.stroke()
@@ -263,22 +285,22 @@ Page({
 
       // 绘制目标点 target（绿色空心圆）
       ctx.beginPath()
-      ctx.arc(offsetX + target_x, centerY, 5, 0, 2 * Math.PI)
+      ctx.arc(target_x, centerY, 5, 0, 2 * Math.PI)
       ctx.strokeStyle = '#00FF00'
       ctx.lineWidth = 2
       ctx.stroke()
 
       // 绘制偏差连线（target → guide）
       ctx.beginPath()
-      ctx.moveTo(offsetX + target_x, centerY)
-      ctx.lineTo(offsetX + guide_x, centerY)
+      ctx.moveTo(target_x, centerY)
+      ctx.lineTo(guide_x, centerY)
       ctx.strokeStyle = '#00FF00'
       ctx.lineWidth = 2
       ctx.stroke()
 
       // 绘制偏差像素值文字
       const errorPx = target_x - guide_x
-      const midX = offsetX + (target_x + guide_x) / 2
+      const midX = (target_x + guide_x) / 2
       ctx.font = 'bold 11px monospace'
       ctx.fillStyle = '#00FF00'
       ctx.textAlign = 'center'
@@ -286,7 +308,7 @@ Page({
 
       // 绘制引导点 guide（浅紫色实心圆）
       ctx.beginPath()
-      ctx.arc(offsetX + guide_x, centerY, 4, 0, 2 * Math.PI)
+      ctx.arc(guide_x, centerY, 4, 0, 2 * Math.PI)
       ctx.fillStyle = '#CC88FF'
       ctx.fill()
     }
@@ -294,10 +316,10 @@ Page({
     wx.canvasToTempFilePath({
       canvas,
       success: (res) => {
+        const renderMs = Date.now() - startTime
         this.setData({ imageData: res.tempFilePath })
-        if (this.data.frameCount % 30 === 0) {
-          console.log('[Render] 帧' + this.data.frameCount + ': OK, 耗时' + (Date.now() - startTime) + 'ms')
-        }
+        // [诊断] 每帧打印渲染耗时
+        console.log('[Render] 帧' + this.data.frameCount + ' 渲染耗时=' + renderMs + 'ms')
       }
     })
   },
