@@ -26,12 +26,20 @@
       <text class="kp-value">{{kp}}</text>
       <view class="kp-btn" bindtap="onKpUp">+</view>
     </view>
+    <view class="save-chart-btn" bindtap="onSaveChart">💾</view>
   </view>
 
-  <!-- 图像区 - 居中 -->
-  <view class="image-area">
-    <image class="preview" src="{{imageData}}" mode="aspectFit" wx:if="{{imageData}}"></image>
-    <text class="placeholder" wx:else>等待图像...</text>
-  </view>
+  <!-- 左右分栏 -->
+  <view class="main-area">
+    <!-- 左侧：图像区 -->
+    <view class="image-panel">
+      <image class="preview" src="{{imageData}}" mode="aspectFit" wx:if="{{imageData}}"></image>
+      <text class="placeholder" wx:else>等待图像...</text>
+    </view>
 
+    <!-- 右侧：误差曲线图 -->
+    <view class="chart-panel">
+      <canvas type="2d" id="errorChart" class="error-chart"></canvas>
+    </view>
+  </view>
 </view>

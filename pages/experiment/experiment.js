@@ -21,6 +21,9 @@ Page({
   FRAME_HEADER_SIZE: 6,     // 帧头: [帧号2B][电压1B][左PWM1B][右PWM1B][引导线x1B] + 补1B=6
   FRAME_IMAGE_SIZE: 19200,  // 图像数据: 160x120
   FRAME_PACKET_SIZE: 19206, // 每帧总大小
+  chartCtx: null,           // 误差图表canvas上下文
+  errorHistory: [],         // 误差历史数据 [error值]
+  MAX_ERROR_POINTS: 100,    // 图表最多显示点数
 
   onLoad(options) {
     console.log('[Experiment] ========== 页面加载(TCP模式) ==========')
@@ -45,6 +48,121 @@ Page({
     // 进入页面立即发送EXPERIMENT命令，建立图像通道
     console.log('[Experiment] 自动发送EXPERIMENT命令')
     app.sendCommand('EXPERIMENT')
+  },
+
+  onReady() {
+    this.initErrorChart()
+  },
+
+  initErrorChart() {
+    const query = wx.createSelectorQuery().in(this)
+    query.select('#errorChart').fields({ node: true, size: true }).exec((res) => {
+      if (!res[0] || !res[0].node) {
+        console.warn('[Chart] canvas节点未找到')
+        return
+      }
+      const canvas = res[0].node
+      const ctx = canvas.getContext('2d')
+      const dpr = wx.getSystemInfoSync().pixelRatio
+      canvas.width = res[0].width * dpr
+      canvas.height = res[0].height * dpr
+      ctx.scale(dpr, dpr)
+      this.chartCanvas = canvas
+      this.chartCtx = ctx
+      console.log('[Chart] 初始化完成, 尺寸=' + res[0].width + 'x' + res[0].height)
+      // 立即绘制空坐标系
+      this.drawErrorChart()
+    })
+  },
+
+  drawErrorChart() {
+    const ctx = this.chartCtx
+    if (!ctx || !this.chartCanvas) return
+
+    const W = this.chartCanvas.width / wx.getSystemInfoSync().pixelRatio
+    const H = this.chartCanvas.height / wx.getSystemInfoSync().pixelRatio
+    const padL = 36, padR = 12, padT = 16, padB = 24
+    const chartW = W - padL - padR
+    const chartH = H - padT - padB
+
+    // 清空背景
+    ctx.fillStyle = '#111'
+    ctx.fillRect(0, 0, W, H)
+
+    // 标题
+    ctx.font = 'bold 12px monospace'
+    ctx.fillStyle = '#9C27B0'
+    ctx.textAlign = 'center'
+    ctx.fillText('Error (px)', W / 2, 12)
+
+    // 绘图区域
+    ctx.strokeStyle = '#333'
+    ctx.lineWidth = 0.5
+    ctx.strokeRect(padL, padT, chartW, chartH)
+
+    // Y轴范围: [-80, +80], 零线在中间
+    const yMax = 80
+    // 绘制Y=0零线
+    ctx.beginPath()
+    ctx.strokeStyle = '#555'
+    ctx.setLineDash([3, 3])
+    ctx.moveTo(padL, padT + chartH / 2)
+    ctx.lineTo(padL + chartW, padT + chartH / 2)
+    ctx.stroke()
+    ctx.setLineDash([])
+
+    // Y轴刻度
+    ctx.font = '10px monospace'
+    ctx.fillStyle = '#888'
+    ctx.textAlign = 'right'
+    ctx.fillText('+' + yMax, padL - 4, padT + 4)
+    ctx.fillText('0', padL - 4, padT + chartH / 2 + 4)
+    ctx.fillText('-' + yMax, padL - 4, padT + chartH - 2)
+
+    // X轴刻度（帧号）
+    ctx.textAlign = 'center'
+    ctx.fillText('帧', padL + chartW / 2, H - 2)
+
+    // 绘制误差曲线
+    const data = this.errorHistory
+    if (data.length < 2) return
+
+    const maxPts = this.MAX_ERROR_POINTS
+    const startIdx = data.length > maxPts ? data.length - maxPts : 0
+    const displayData = data.slice(startIdx)
+
+    ctx.beginPath()
+    ctx.strokeStyle = '#00CC88'
+    ctx.lineWidth = 1.5
+    for (let i = 0; i < displayData.length; i++) {
+      const x = padL + (i / (maxPts - 1)) * chartW
+      const val = displayData[i]
+      // clamp to range
+      const clampedVal = Math.max(-yMax, Math.min(yMax, val))
+      const y = padT + chartH / 2 - (clampedVal / yMax) * (chartH / 2)
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+
+    // 当前值标记
+    if (displayData.length > 0) {
+      const lastVal = displayData[displayData.length - 1]
+      const lastX = padL + ((displayData.length - 1) / (maxPts - 1)) * chartW
+      const lastClamped = Math.max(-yMax, Math.min(yMax, lastVal))
+      const lastY = padT + chartH / 2 - (lastClamped / yMax) * (chartH / 2)
+
+      ctx.beginPath()
+      ctx.arc(lastX, lastY, 3, 0, 2 * Math.PI)
+      ctx.fillStyle = '#00FFAA'
+      ctx.fill()
+
+      // 显示当前error数值
+      ctx.font = 'bold 11px monospace'
+      ctx.fillStyle = '#00FFAA'
+      ctx.textAlign = 'left'
+      ctx.fillText(Math.round(lastVal), lastX + 6, lastY + 4)
+    }
   },
 
   onUnload() {
@@ -80,10 +198,7 @@ Page({
     console.log('[Experiment] TCP消息: ' + str)
     
     if (str.includes('IMG_OK')) {
-      console.log('[Experiment] 图像通道就绪，发送START启动电机')
-      this.setData({ streaming: true })
-      // 图像通道OK后立即启动电机
-      app.sendCommand('START:' + this.data.speed)
+      console.log('[Experiment] 命令通道收到IMG_OK(忽略，图像通道独立处理)')
       return
     }
     
@@ -203,6 +318,20 @@ Page({
       const motorB = Math.round(frameBytes[4] * 100 / 255)
       const guide_x = frameBytes[5]
       
+      // 计算误差: target_x(80) - guide_x
+      const error = 80 - guide_x
+      
+      // 仅在电机运行时收集误差数据并绘制图表
+      if (this.data.running) {
+        this.errorHistory.push(error)
+        if (this.errorHistory.length > this.MAX_ERROR_POINTS * 2) {
+          this.errorHistory = this.errorHistory.slice(-this.MAX_ERROR_POINTS)
+        }
+        
+        // 更新误差曲线图
+        this.drawErrorChart()
+      }
+      
       this.setData({ voltage, motorA, motorB })
 
       // 提取图像数据
@@ -308,11 +437,142 @@ Page({
     if (this.data.debugMode) return
     if (running) {
       console.log('[Experiment] 发送START启动电机')
+      // 清空误差数据，开始新一轮记录
+      this.errorHistory = []
       app.sendCommand('START:' + this.data.speed)
     } else {
       console.log('[Experiment] 发送STOP停止电机（图像流继续）')
       app.sendCommand('STOP')
     }
+  },
+
+  onSaveChart() {
+    const data = this.errorHistory
+    if (data.length === 0) {
+      wx.showToast({ title: '无数据可保存', icon: 'none' })
+      return
+    }
+
+    wx.showLoading({ title: '正在生成图表...' })
+
+    const width = 1800
+    const height = 900
+    const padL = 80, padR = 40, padT = 60, padB = 60
+
+    const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
+    const ctx = canvas.getContext('2d')
+
+    // 背景
+    ctx.fillStyle = '#1a1a1a'
+    ctx.fillRect(0, 0, width, height)
+
+    const chartW = width - padL - padR
+    const chartH = height - padT - padB
+    const yMax = 80
+
+    // 标题
+    ctx.font = 'bold 36px monospace'
+    ctx.fillStyle = '#9C27B0'
+    ctx.textAlign = 'center'
+    ctx.fillText('PID Error Curve', width / 2, 38)
+
+    // 绘图区域边框
+    ctx.strokeStyle = '#444'
+    ctx.lineWidth = 2
+    ctx.strokeRect(padL, padT, chartW, chartH)
+
+    // 零线
+    ctx.beginPath()
+    ctx.strokeStyle = '#555'
+    ctx.setLineDash([8, 6])
+    ctx.moveTo(padL, padT + chartH / 2)
+    ctx.lineTo(padL + chartW, padT + chartH / 2)
+    ctx.stroke()
+    ctx.setLineDash([])
+
+    // Y轴刻度
+    ctx.font = '24px monospace'
+    ctx.fillStyle = '#aaa'
+    ctx.textAlign = 'right'
+    ctx.fillText('+' + yMax + 'px', padL - 10, padT + 16)
+    ctx.fillText('0', padL - 10, padT + chartH / 2 + 8)
+    ctx.fillText('-' + yMax + 'px', padL - 10, padT + chartH - 4)
+
+    // X轴标签
+    ctx.textAlign = 'center'
+    ctx.fillText('Frame →', padL + chartW / 2, height - 12)
+
+    // 数据范围
+    const maxPts = Math.min(data.length, 200)
+    const startIdx = data.length > maxPts ? data.length - maxPts : 0
+    const displayData = data.slice(startIdx)
+
+    // 误差曲线
+    ctx.beginPath()
+    ctx.strokeStyle = '#00CC88'
+    ctx.lineWidth = 3
+    for (let i = 0; i < displayData.length; i++) {
+      const x = padL + (i / (maxPts - 1)) * chartW
+      const val = displayData[i]
+      const clampedVal = Math.max(-yMax, Math.min(yMax, val))
+      const y = padT + chartH / 2 - (clampedVal / yMax) * (chartH / 2)
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
+    }
+    ctx.stroke()
+
+    // 当前值标记
+    if (displayData.length > 0) {
+      const lastVal = displayData[displayData.length - 1]
+      const lastX = padL + ((displayData.length - 1) / (maxPts - 1)) * chartW
+      const lastClamped = Math.max(-yMax, Math.min(yMax, lastVal))
+      const lastY = padT + chartH / 2 - (lastClamped / yMax) * (chartH / 2)
+
+      ctx.beginPath()
+      ctx.arc(lastX, lastY, 8, 0, 2 * Math.PI)
+      ctx.fillStyle = '#00FFAA'
+      ctx.fill()
+
+      ctx.font = 'bold 28px monospace'
+      ctx.fillStyle = '#00FFAA'
+      ctx.textAlign = 'left'
+      ctx.fillText(Math.round(lastVal), lastX + 14, lastY + 9)
+    }
+
+    // 底部统计信息
+    const mean = displayData.reduce((a, b) => a + b, 0) / displayData.length
+    let variance = 0
+    for (let v of displayData) variance += (v - mean) ** 2
+    const stdDev = Math.sqrt(variance / displayData.length)
+    const minE = Math.min(...displayData)
+    const maxE = Math.max(...displayData)
+    
+    ctx.font = '22px monospace'
+    ctx.fillStyle = '#888'
+    ctx.textAlign = 'left'
+    ctx.fillText(`N=${displayData.length}  Mean=${mean.toFixed(1)}  Std=${stdDev.toFixed(1)}  Min=${minE}  Max=${maxE}`,
+                 padL, height - 18)
+
+    // 保存到相册
+    wx.canvasToTempFilePath({
+      canvas,
+      success: (res) => {
+        wx.hideLoading()
+        wx.saveImageToPhotosAlbum({
+          filePath: res.tempFilePath,
+          success: () => {
+            wx.showToast({ title: '已保存到相册', icon: 'success' })
+          },
+          fail: () => {
+            wx.showToast({ title: '保存失败', icon: 'none' })
+          }
+        })
+      },
+      fail: () => {
+        wx.hideLoading()
+        wx.showToast({ title: '生成失败', icon: 'none' })
+      }
+    })
   },
 
   onSpeedUp() {
