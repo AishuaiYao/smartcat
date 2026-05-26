@@ -16,16 +16,14 @@ Page({
   },
 
   lastFrameTime: 0,
-  udpSocket: null,
-  udpLocalPort: 5003,
-  frameBuffer: null,
-  frameSize: 19200,  // 叠加图：160x120 = 19200
-  totalChunks: 3,
-  chunkDataSize: 6400,
-
+  imgSocket: null,          // 图像TCP连接
+  recvBuffer: null,         // 接收缓冲区（Uint8Array动态增长）
+  FRAME_HEADER_SIZE: 6,     // 帧头: [帧号2B][电压1B][左PWM1B][右PWM1B][引导线x1B] + 补1B=6
+  FRAME_IMAGE_SIZE: 19200,  // 图像数据: 160x120
+  FRAME_PACKET_SIZE: 19206, // 每帧总大小
 
   onLoad(options) {
-    console.log('[Experiment] ========== 页面加载 ==========')
+    console.log('[Experiment] ========== 页面加载(TCP模式) ==========')
     console.log('[Experiment] debug=' + options.debug + ', connected=' + app.globalData.connected)
     
     if (options.debug === '1') {
@@ -41,21 +39,24 @@ Page({
       return
     }
     
-    console.log('[Experiment] 注册回调，初始化UDP')
+    console.log('[Experiment] 注册回调，自动开始实验')
     this.registerCallbacks()
-    this.setupUDP()
+
+    // 进入页面立即发送EXPERIMENT命令，建立图像通道
+    console.log('[Experiment] 自动发送EXPERIMENT命令')
+    app.sendCommand('EXPERIMENT')
   },
 
   onUnload() {
     console.log('[Experiment] 页面卸载')
     this.removeCallbacks()
     
-    if (this.udpSocket) {
+    if (this.imgSocket) {
       app.sendCommand('STOP_EXPERIMENT')
-      this.udpSocket.close()
-      this.udpSocket = null
+      this.imgSocket.close()
+      this.imgSocket = null
     }
-    this.frameBuffer = null
+    this.recvBuffer = null
   },
 
   registerCallbacks() {
@@ -78,21 +79,35 @@ Page({
     const str = String.fromCharCode(...bytes.subarray(0, Math.min(bytes.length, 50)))
     console.log('[Experiment] TCP消息: ' + str)
     
-    if (str.includes('UDP_OK')) {
-      console.log('[Experiment] UDP就绪，发送EXPERIMENT')
-      app.sendCommand('EXPERIMENT')
+    if (str.includes('IMG_OK')) {
+      console.log('[Experiment] 图像通道就绪，发送START启动电机')
       this.setData({ streaming: true })
+      // 图像通道OK后立即启动电机
+      app.sendCommand('START:' + this.data.speed)
       return
     }
     
-    if (str.includes('UDP_NOT_READY')) {
-      console.log('[Experiment] UDP未就绪')
-      wx.showToast({ title: 'UDP初始化失败', icon: 'none' })
+    if (str.includes('WAITING_IMG_CONN')) {
+      console.log('[Experiment] ESP32等待图像连接，立即建立图像TCP')
+      this.setupImageTCP()
+      return
+    }
+    
+    if (str.includes('IMG_NOT_READY') || str.includes('IMG_CONN_FAILED')) {
+      console.log('[Experiment] 图像通道失败')
+      wx.showToast({ title: '图像通道建立失败', icon: 'none' })
+      return
+    }
+
+    // 兼容旧UDP相关响应（防止误触发）
+    if (str.includes('UDP_OK') || str.includes('UDP_NOT_READY')) {
+      console.log('[Experiment] 收到旧的UDP相关消息，忽略')
+      return
     }
   },
 
   onClose() {
-    console.log('[Experiment] TCP连接已关闭')
+    console.log('[Experiment] TCP命令连接已关闭')
     this.setData({ streaming: false })
   },
 
@@ -102,148 +117,119 @@ Page({
     this.setData({ streaming: false })
   },
 
-  setupUDP() {
-    console.log('========== UDP初始化 ==========')
+  setupImageTCP() {
+    console.log('========== 图像TCP初始化 ==========')
     
-    const udp = wx.createUDPSocket()
-    if (!udp) {
-      console.log('[Experiment] 创建UDP失败')
-      wx.showToast({ title: 'UDP创建失败', icon: 'none' })
+    const imgSock = wx.createTCPSocket()
+    if (!imgSock) {
+      console.log('[Experiment] 创建图像TCPSocket失败')
+      wx.showToast({ title: '创建连接失败', icon: 'none' })
       return
     }
-    this.udpSocket = udp
-    app.setUDPSocket(udp)
+    this.imgSocket = imgSock
+    this.recvBuffer = new Uint8Array(0)
 
-    udp.onMessage((res) => {
-      this.onReceiveUDPData(res.message)
+    imgSock.onConnect(() => {
+      console.log('[Experiment] 图像TCP连接成功，发送握手')
+      imgSock.write('IMG_CONN\n')
     })
 
-    udp.onError((err) => {
-      console.log('[Experiment] UDP错误:', err)
-    })
+    imgSock.onMessage((res) => {
+      const t0 = Date.now()
+      const newData = new Uint8Array(res.message)
 
-    const port = udp.bind(this.udpLocalPort)
-    console.log('[Experiment] UDP绑定端口: ' + port)
-    console.log('================================')
-    
-    app.sendCommand('UDP_HELLO:' + port)
-    
-    const helloMsg = 'HELLO_UDP'
-    udp.send({
-      address: app.globalData.esp32IP,
-      port: 5001,
-      message: helloMsg
-    })
-    console.log('[Experiment] 发送HELLO_UDP到ESP32')
-  },
-
-  lastMsgTime: 0,  // 上一次onMessage触发时间
-
-  onReceiveUDPData(data) {
-    const t0 = Date.now()
-
-    // [诊断] 距上次onMessage的间隔（定位大间隔发生位置）
-    if (this.lastMsgTime > 0) {
-      const gap = t0 - this.lastMsgTime
-      if (gap > 200) {
-        console.log('[GAP] onMessage空闲+' + gap + 'ms')
-      }
-    }
-    this.lastMsgTime = t0
-
-    const bytes = new Uint8Array(data)
-    if (bytes.length < 4) {
-      console.log('[UDP] 数据太短:', bytes.length)
-      return
-    }
-
-    const frameNum = (bytes[0] << 8) | bytes[1]
-    const totalChunks = bytes[2]
-    const chunkIndex = bytes[3]
-    let chunkData
-    
-    if (chunkIndex === 0 && bytes.length >= 8) {
-      const voltageRaw = bytes[4]
-      const voltage = (voltageRaw / 10).toFixed(1)
-      const motorA = Math.round(bytes[5] * 100 / 255)
-      const motorB = Math.round(bytes[6] * 100 / 255)
-      this.setData({ voltage, motorA, motorB })
-      this._pidData = { guide_x: bytes[7] }
-      chunkData = bytes.slice(8)
-    } else {
-      chunkData = bytes.slice(4)
-    }
-
-    // 初始化或切换帧缓冲区
-    const now = Date.now()
-    if (!this.frameBuffer || this.frameBuffer.frameNum !== frameNum) {
-      this.frameBuffer = {
-        frameNum: frameNum,
-        totalChunks: totalChunks,
-        chunks: new Array(totalChunks),
-        receivedCount: 0,
-        startTime: now
-      }
-    }
-
-    // 存储分片
-    if (!this.frameBuffer.chunks[chunkIndex]) {
-      this.frameBuffer.chunks[chunkIndex] = chunkData
-      this.frameBuffer.receivedCount++
-      console.log('[Chunk] 帧' + frameNum + ' 片' + (chunkIndex + 1) + '/' + totalChunks + ', 距首片+' + (now - this.frameBuffer.startTime) + 'ms')
-    }
-
-    // 检查是否收齐所有分片
-    if (this.frameBuffer.receivedCount === this.frameBuffer.totalChunks) {
-      const tAssembleStart = Date.now()
-      const grayData = this.assembleFrame()
-      const tAssembleEnd = Date.now()
-      
-      if (grayData) {
-        // 计算帧间隔
-        const now = Date.now()
-        if (this.lastFrameTime > 0) {
-          const delta = now - this.lastFrameTime
-          this.setData({ delayMs: delta < 2000 ? delta : 0 })
+      // 检查是否为握手响应（首条消息可能是文本）
+      if (this.recvBuffer.length === 0 && newData.length < 20) {
+        const str = String.fromCharCode(...newData)
+        console.log('[ImgTCP] 收到: ' + str)
+        if (str.includes('IMG_OK')) {
+          console.log('[ImgTCP] 图像通道就绪，开始渲染画面')
+          this.setData({ streaming: true })
+          return  // 握手响应，不是帧数据
         }
-        this.lastFrameTime = now
-        
-        const frameCount = this.data.frameCount + 1
-        this.setData({ frameCount })
-
-        const assembleCost = tAssembleEnd - tAssembleStart
-        const fromFirstChunk = tAssembleEnd - this.frameBuffer.startTime
-        console.log('[Assemble] 帧' + frameCount + '(ESP32帧' + frameNum + '): 组装耗时' + assembleCost + 'ms, 距首片' + fromFirstChunk + 'ms, 帧间隔' + this.data.delayMs + 'ms')
-
-        // 处理图像
-        this.processImage(grayData, this._pidData, tAssembleEnd)
-        this._pidData = null
       }
 
-      this.frameBuffer = null
-    }
+      // [诊断] 空窗检测
+      if (this.lastMsgTime > 0) {
+        const gap = t0 - this.lastMsgTime
+        if (gap > 200) {
+          console.log('[GAP] onMessage空闲+' + gap + 'ms')
+        }
+      }
+      this.lastMsgTime = t0
+
+      // 追加到接收缓冲区
+      const merged = new Uint8Array(this.recvBuffer.length + newData.length)
+      merged.set(this.recvBuffer)
+      merged.set(newData, this.recvBuffer.length)
+      this.recvBuffer = merged
+
+      // 尝试提取完整帧
+      this.extractFrames()
+    })
+
+    imgSock.onClose(() => {
+      console.log('[Experiment] 图像TCP已关闭')
+      this.setData({ streaming: false })
+    })
+
+    imgSock.onError((err) => {
+      console.log('[Experiment] 图像TCP错误:', err)
+    })
+
+    console.log('[Experiment] 发起图像TCP连接...')
+    imgSock.connect({
+      address: app.globalData.esp32IP,
+      port: app.globalData.esp32Port   // 同端口5000，第二条连接
+    })
+    console.log('=====================================')
   },
 
-  assembleFrame() {
-    if (!this.frameBuffer) return null
+  extractFrames() {
+    const pktSize = this.FRAME_PACKET_SIZE
     
-    const grayData = new Uint8Array(this.frameSize)
-    let offset = 0
-    
-    for (let i = 0; i < this.frameBuffer.totalChunks; i++) {
-      const chunk = this.frameBuffer.chunks[i]
-      if (chunk) {
-        grayData.set(chunk, offset)
-        offset += chunk.length
+    while (this.recvBuffer.length >= pktSize) {
+      const tExtractStart = Date.now()
+
+      // 提取一帧
+      const frameBytes = this.recvBuffer.slice(0, pktSize)
+      this.recvBuffer = this.recvBuffer.slice(pktSize)
+
+      // 解析帧头
+      const frameNum = (frameBytes[0] << 8) | frameBytes[1]
+      const voltageRaw = frameBytes[2]
+      const voltage = (voltageRaw / 10).toFixed(1)
+      const motorA = Math.round(frameBytes[3] * 100 / 255)
+      const motorB = Math.round(frameBytes[4] * 100 / 255)
+      const guide_x = frameBytes[5]
+      
+      this.setData({ voltage, motorA, motorB })
+
+      // 提取图像数据
+      const grayData = frameBytes.slice(this.FRAME_HEADER_SIZE)
+
+      // 计算帧间隔
+      const now = Date.now()
+      if (this.lastFrameTime > 0) {
+        const delta = now - this.lastFrameTime
+        this.setData({ delayMs: delta < 2000 ? delta : 0 })
       }
+      this.lastFrameTime = now
+
+      const frameCount = this.data.frameCount + 1
+      this.setData({ frameCount })
+
+      const extractCost = Date.now() - tExtractStart
+      console.log('[Recv] 帧' + frameCount + '(ESP32帧' + frameNum + '): 提取耗时' + extractCost + 'ms, 缓冲剩余' + this.recvBuffer.length + 'B, 帧间隔' + this.data.delayMs + 'ms')
+
+      // 处理图像
+      this.processImage(grayData, { guide_x: guide_x }, Date.now())
     }
-    
-    return grayData
   },
 
   processImage(grayData, pidData, tAssembleEnd) {
     const t0 = Date.now()
-    console.log('[Process] 进入processImage, 距组装完成+' + (t0 - tAssembleEnd) + 'ms')
+    console.log('[Process] 进入processImage, 距提取完成+' + (t0 - tAssembleEnd) + 'ms')
     
     const width = 160, height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
@@ -321,8 +307,10 @@ Page({
     this.setData({ running })
     if (this.data.debugMode) return
     if (running) {
+      console.log('[Experiment] 发送START启动电机')
       app.sendCommand('START:' + this.data.speed)
     } else {
+      console.log('[Experiment] 发送STOP停止电机（图像流继续）')
       app.sendCommand('STOP')
     }
   },
@@ -374,10 +362,8 @@ Page({
         const i = (y * width + x) * 4
         let gray
         if (x < 160) {
-          // 左侧：灰度渐变模拟原图
           gray = Math.floor((x / 160) * 255)
         } else {
-          // 右侧：黑白二值模拟预测结果（中间白色竖条模拟引导线）
           if (x >= 220 && x <= 260 && y >= 20 && y <= 100) {
             gray = 255
           } else {
@@ -397,11 +383,9 @@ Page({
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
 
-    // 示例目标点和引导点叠加
     const offsetX = 160
     const targetX = 80, guideX = 75
 
-    // 中心十字线（绿色虚线）
     ctx.beginPath()
     ctx.setLineDash([4, 4])
     ctx.moveTo(offsetX + 10, 60)
@@ -413,14 +397,12 @@ Page({
     ctx.stroke()
     ctx.setLineDash([])
 
-    // 目标点（绿色空心）
     ctx.beginPath()
     ctx.arc(offsetX + targetX, 60, 5, 0, 2 * Math.PI)
     ctx.strokeStyle = '#00FF00'
     ctx.lineWidth = 2
     ctx.stroke()
 
-    // 偏差连线
     ctx.beginPath()
     ctx.moveTo(offsetX + targetX, 60)
     ctx.lineTo(offsetX + guideX, 60)
@@ -428,7 +410,6 @@ Page({
     ctx.lineWidth = 2
     ctx.stroke()
 
-    // 偏差像素值文字
     const errorPx = targetX - guideX
     const midX = offsetX + (targetX + guideX) / 2
     ctx.font = 'bold 11px monospace'
@@ -436,7 +417,6 @@ Page({
     ctx.textAlign = 'center'
     ctx.fillText(errorPx + 'px', midX, 60 - 8)
 
-    // 引导点（浅紫色实心）
     ctx.beginPath()
     ctx.arc(offsetX + guideX, 60, 4, 0, 2 * Math.PI)
     ctx.fillStyle = '#CC88FF'
