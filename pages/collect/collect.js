@@ -315,9 +315,22 @@ Page({
     console.log('[Collect] 发送HELLO_UDP到ESP32')
   },
 
+  lastMsgTime: 0,
+
   onReceiveUDPData(data) {
+    const t0 = Date.now()
+
+    if (this.lastMsgTime > 0) {
+      const gap = t0 - this.lastMsgTime
+      if (gap > 200) {
+        console.log('[GAP] onMessage空闲+' + gap + 'ms')
+      }
+    }
+    this.lastMsgTime = t0
+
     const bytes = new Uint8Array(data)
     if (bytes.length < 4) {
+
       console.log('[UDP] 数据太短:', bytes.length)
       return
     }
@@ -347,14 +360,14 @@ Page({
     }
     
     // 初始化或切换帧缓冲区
+    const now = Date.now()
     if (!this.frameBuffer || this.frameBuffer.frameNum !== frameNum) {
-      // 如果是新一帧，初始化缓冲区
       this.frameBuffer = {
         frameNum: frameNum,
         totalChunks: totalChunks,
         chunks: new Array(totalChunks),
         receivedCount: 0,
-        startTime: Date.now()
+        startTime: now
       }
     }
     
@@ -362,14 +375,16 @@ Page({
     if (!this.frameBuffer.chunks[chunkIndex]) {
       this.frameBuffer.chunks[chunkIndex] = chunkData
       this.frameBuffer.receivedCount++
+      console.log('[Chunk] 帧' + frameNum + ' 片' + (chunkIndex + 1) + '/' + totalChunks + ', 距首片+' + (now - this.frameBuffer.startTime) + 'ms')
     }
     
     // 检查是否收齐所有分片
     if (this.frameBuffer.receivedCount === this.frameBuffer.totalChunks) {
-      // 组装完整帧
+      const tAssembleStart = Date.now()
       const grayData = this.assembleFrame()
+      const tAssembleEnd = Date.now()
+
       if (grayData) {
-        // 计算帧率
         const now = Date.now()
         if (this.lastFrameTime > 0) {
           const delta = now - this.lastFrameTime
@@ -377,22 +392,15 @@ Page({
           this.setData({ fps })
         }
         this.lastFrameTime = now
-        
-        // 更新帧计数
+
         const frameCount = this.data.frameCount + 1
         this.setData({ frameCount })
-        
-        // 每10帧打印一次状态
-        if (frameCount % 10 === 0) {
-          const assembleTime = Date.now() - this.frameBuffer.startTime
-          console.log('[UDP] 帧' + frameCount + ': 组装完成, 耗时' + assembleTime + 'ms, FPS=' + this.data.fps)
-        }
-        
-        // 处理图像
-        this.processImage(grayData)
+
+        console.log('[Assemble] 帧' + frameCount + '(ESP32帧' + frameNum + '): 组装耗时' + (tAssembleEnd - tAssembleStart) + 'ms, 距首片' + (tAssembleEnd - this.frameBuffer.startTime) + 'ms, 帧间隔' + (this.data.fps ? Math.round(1000/this.data.fps) : '?') + 'ms')
+
+        this.processImage(grayData, tAssembleEnd)
       }
-      
-      // 清空缓冲区
+
       this.frameBuffer = null
     }
   },
@@ -416,9 +424,10 @@ Page({
     return grayData
   },
 
-  processImage(grayData) {
-    const startTime = Date.now()
-    
+  processImage(grayData, tAssembleEnd) {
+    const t0 = Date.now()
+    console.log('[Process] 进入processImage, 距组装完成+' + (t0 - tAssembleEnd) + 'ms')
+
     const width = 160
     const height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
@@ -430,24 +439,26 @@ Page({
       rgbaData[i * 4 + 3] = 255
     }
 
+    const t1 = Date.now()
+
     const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
     const ctx = canvas.getContext('2d')
     const imgData = ctx.createImageData(width, height)
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
 
+    const t2 = Date.now()
     const frameCount = this.data.frameCount
+
+    console.log('[Draw] 帧' + frameCount + ': RGBA+' + (t1 - t0) + 'ms Canvas+' + (t2 - t1) + 'ms | 准备转tempFile')
 
     wx.canvasToTempFilePath({
       canvas,
       success: (res) => {
+        const t3 = Date.now()
         this.setData({ imageData: res.tempFilePath })
-        const processTime = Date.now() - startTime
-        
-        if (frameCount % 10 === 0) {
-          console.log('[Render] 帧' + frameCount + ': 渲染完成, 耗时' + processTime + 'ms')
-        }
-        
+        console.log('[Render] 帧' + frameCount + ': tempFile耗时' + (t3 - t2) + 'ms, 总渲染' + (t3 - t0) + 'ms')
+
         if (frameCount % 10 === 1 && !this.data.debugMode && this.data.isCollecting) {
           this.saveImage(res.tempFilePath)
         }

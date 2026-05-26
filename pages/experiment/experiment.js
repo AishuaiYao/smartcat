@@ -20,8 +20,9 @@ Page({
   udpLocalPort: 5003,
   frameBuffer: null,
   frameSize: 19200,  // 叠加图：160x120 = 19200
-  totalChunks: 14,
-  chunkDataSize: 1400,
+  totalChunks: 3,
+  chunkDataSize: 6400,
+
 
   onLoad(options) {
     console.log('[Experiment] ========== 页面加载 ==========')
@@ -55,7 +56,6 @@ Page({
       this.udpSocket = null
     }
     this.frameBuffer = null
-    this._chunkLog = null
   },
 
   registerCallbacks() {
@@ -137,92 +137,89 @@ Page({
     console.log('[Experiment] 发送HELLO_UDP到ESP32')
   },
 
+  lastMsgTime: 0,  // 上一次onMessage触发时间
+
   onReceiveUDPData(data) {
+    const t0 = Date.now()
+
+    // [诊断] 距上次onMessage的间隔（定位大间隔发生位置）
+    if (this.lastMsgTime > 0) {
+      const gap = t0 - this.lastMsgTime
+      if (gap > 200) {
+        console.log('[GAP] onMessage空闲+' + gap + 'ms')
+      }
+    }
+    this.lastMsgTime = t0
+
     const bytes = new Uint8Array(data)
     if (bytes.length < 4) {
       console.log('[UDP] 数据太短:', bytes.length)
       return
     }
-    
+
     const frameNum = (bytes[0] << 8) | bytes[1]
     const totalChunks = bytes[2]
     const chunkIndex = bytes[3]
-    const now = Date.now()
     let chunkData
     
-    // [诊断] 记录每个分片到达
-    if (!this._chunkLog) this._chunkLog = { lastFrame: -1, chunksReceived: [] }
-    if (this._chunkLog.lastFrame !== frameNum) {
-      if (this._chunkLog.lastFrame >= 0) {
-        console.log('[UDP·诊断] 帧' + this._chunkLog.lastFrame + ' 实际收到' + this._chunkLog.chunksReceived.length + '/' + totalChunks + '片, 缺失: [' +
-          Array.from({length: totalChunks}, (_, i) => i).filter(i => !this._chunkLog.chunksReceived.includes(i)).join(',') + ']')
-      }
-      this._chunkLog = { lastFrame: frameNum, chunksReceived: [chunkIndex] }
-    } else {
-      this._chunkLog.chunksReceived.push(chunkIndex)
-    }
-    
-    // 第一分片(0)：[协议头4B][电压1B][左PWM 1B][右PWM 1B][引导线x 1B][图像数据...]
-    // 其他分片：[协议头4B][图像数据...]
     if (chunkIndex === 0 && bytes.length >= 8) {
       const voltageRaw = bytes[4]
       const voltage = (voltageRaw / 10).toFixed(1)
       const motorA = Math.round(bytes[5] * 100 / 255)
       const motorB = Math.round(bytes[6] * 100 / 255)
       this.setData({ voltage, motorA, motorB })
-      // 提取 PID 引导线数据
-      this._pidData = {
-        guide_x: bytes[7]
-      }
+      this._pidData = { guide_x: bytes[7] }
       chunkData = bytes.slice(8)
     } else {
       chunkData = bytes.slice(4)
     }
-    
-    // 初始化帧缓冲区 (如果是新帧号)
+
+    // 初始化或切换帧缓冲区
+    const now = Date.now()
     if (!this.frameBuffer || this.frameBuffer.frameNum !== frameNum) {
-      // [诊断] 帧号跳变检测
-      if (this.frameBuffer && this.frameBuffer.frameNum !== frameNum) {
-        const skipped = frameNum - this.frameBuffer.frameNum - 1
-        const missing = this.frameBuffer.totalChunks - this.frameBuffer.receivedCount
-        console.log('[UDP·诊断] 帧' + this.frameBuffer.frameNum + ' 未完成(缺' + missing + '片), 跳至帧' + frameNum + '(跳过' + skipped + '帧)')
-      }
       this.frameBuffer = {
         frameNum: frameNum,
         totalChunks: totalChunks,
         chunks: new Array(totalChunks),
         receivedCount: 0,
-        firstChunkTime: now
+        startTime: now
       }
     }
-    
+
     // 存储分片
-    if (!this.frameBuffer.chunks[chunkIndex] && chunkData.length > 0) {
+    if (!this.frameBuffer.chunks[chunkIndex]) {
       this.frameBuffer.chunks[chunkIndex] = chunkData
       this.frameBuffer.receivedCount++
+      console.log('[Chunk] 帧' + frameNum + ' 片' + (chunkIndex + 1) + '/' + totalChunks + ', 距首片+' + (now - this.frameBuffer.startTime) + 'ms')
     }
-    
-    // 检查是否收齐
+
+    // 检查是否收齐所有分片
     if (this.frameBuffer.receivedCount === this.frameBuffer.totalChunks) {
-      const assemblyTime = now - this.frameBuffer.firstChunkTime
+      const tAssembleStart = Date.now()
       const grayData = this.assembleFrame()
-      if (grayData && grayData.length === this.frameSize) {
-        const delayMs = this.lastFrameTime > 0 ? now - this.lastFrameTime : 0
-        this.setData({ delayMs })
+      const tAssembleEnd = Date.now()
+      
+      if (grayData) {
+        // 计算帧间隔
+        const now = Date.now()
+        if (this.lastFrameTime > 0) {
+          const delta = now - this.lastFrameTime
+          this.setData({ delayMs: delta < 2000 ? delta : 0 })
+        }
         this.lastFrameTime = now
         
         const frameCount = this.data.frameCount + 1
         this.setData({ frameCount })
-        
-        // [诊断] 帧组装完成
-        console.log('[UDP·诊断] 帧' + frameNum + ' 组装完成: 收齐' + this.frameBuffer.receivedCount + 
-          '片, 组装耗时' + assemblyTime + 'ms, 帧间隔' + (delayMs || 0) + 'ms')
-        
-        this.processImage(grayData, this._pidData)
+
+        const assembleCost = tAssembleEnd - tAssembleStart
+        const fromFirstChunk = tAssembleEnd - this.frameBuffer.startTime
+        console.log('[Assemble] 帧' + frameCount + '(ESP32帧' + frameNum + '): 组装耗时' + assembleCost + 'ms, 距首片' + fromFirstChunk + 'ms, 帧间隔' + this.data.delayMs + 'ms')
+
+        // 处理图像
+        this.processImage(grayData, this._pidData, tAssembleEnd)
         this._pidData = null
-      } else {
-        console.log('[UDP·诊断] 帧' + frameNum + ' 组帧失败, 长度=' + (grayData ? grayData.length : 0))
       }
+
       this.frameBuffer = null
     }
   },
@@ -244,12 +241,11 @@ Page({
     return grayData
   },
 
-  processImage(grayData, pidData) {
-    const startTime = Date.now()
+  processImage(grayData, pidData, tAssembleEnd) {
+    const t0 = Date.now()
+    console.log('[Process] 进入processImage, 距组装完成+' + (t0 - tAssembleEnd) + 'ms')
     
-    // 叠加图尺寸：160x120（原图 + 预测线亮灰叠加）
-    const width = 160
-    const height = 120
+    const width = 160, height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
 
     for (let i = 0; i < grayData.length; i++) {
@@ -259,67 +255,63 @@ Page({
       rgbaData[i * 4 + 3] = 255
     }
 
+    const t1 = Date.now()
+
     const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
     const ctx = canvas.getContext('2d')
     const imgData = ctx.createImageData(width, height)
     imgData.data.set(rgbaData)
     ctx.putImageData(imgData, 0, 0)
+    
+    const t2 = Date.now()
 
-    // ========== 绘制PID目标点和引导点 ==========
+    // ========== 绘制PID目标点和引导线 ==========
     if (pidData) {
-      const { guide_x } = pidData
-      const target_x = 80  // 图像中心，固定值
-      const centerY = 60   // 图像水平中心线 y
-
-      // 绘制中心十字线（绿色虚线）
+      const guide_x = pidData.guide_x
+      const target_x = 80, cy = 60
+      
       ctx.beginPath()
       ctx.setLineDash([4, 4])
-      ctx.moveTo(10, centerY)
-      ctx.lineTo(150, centerY)
-      ctx.moveTo(80, 10)
-      ctx.lineTo(80, 110)
-      ctx.strokeStyle = '#00CC00'
-      ctx.lineWidth = 1
+      ctx.moveTo(10, cy); ctx.lineTo(150, cy)
+      ctx.moveTo(80, 10); ctx.lineTo(80, 110)
+      ctx.strokeStyle = '#00CC00'; ctx.lineWidth = 1
       ctx.stroke()
       ctx.setLineDash([])
-
-      // 绘制目标点 target（绿色空心圆）
+      
       ctx.beginPath()
-      ctx.arc(target_x, centerY, 5, 0, 2 * Math.PI)
-      ctx.strokeStyle = '#00FF00'
-      ctx.lineWidth = 2
+      ctx.arc(target_x, cy, 5, 0, 2 * Math.PI)
+      ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2
       ctx.stroke()
-
-      // 绘制偏差连线（target → guide）
+      
       ctx.beginPath()
-      ctx.moveTo(target_x, centerY)
-      ctx.lineTo(guide_x, centerY)
-      ctx.strokeStyle = '#00FF00'
-      ctx.lineWidth = 2
+      ctx.moveTo(target_x, cy); ctx.lineTo(guide_x, cy)
+      ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2
       ctx.stroke()
-
-      // 绘制偏差像素值文字
-      const errorPx = target_x - guide_x
-      const midX = (target_x + guide_x) / 2
+      
       ctx.font = 'bold 11px monospace'
       ctx.fillStyle = '#00FF00'
       ctx.textAlign = 'center'
-      ctx.fillText(errorPx + 'px', midX, centerY - 8)
-
-      // 绘制引导点 guide（浅紫色实心圆）
+      ctx.fillText((target_x - guide_x) + 'px', (target_x + guide_x) / 2, cy - 8)
+      
       ctx.beginPath()
-      ctx.arc(guide_x, centerY, 4, 0, 2 * Math.PI)
+      ctx.arc(guide_x, cy, 4, 0, 2 * Math.PI)
       ctx.fillStyle = '#CC88FF'
       ctx.fill()
     }
 
+    const t3 = Date.now()
+    const frameCount = this.data.frameCount
+
+    console.log('[Draw] 帧' + frameCount + ': RGBA+' + (t1-t0) + 'ms Canvas+' + (t2-t1) + 'ms 绘图+' + (t3-t2) + 'ms | 准备转tempFile')
+
     wx.canvasToTempFilePath({
       canvas,
       success: (res) => {
-        const renderMs = Date.now() - startTime
+        const t4 = Date.now()
         this.setData({ imageData: res.tempFilePath })
-        // [诊断] 每帧打印渲染耗时
-        console.log('[Render] 帧' + this.data.frameCount + ' 渲染耗时=' + renderMs + 'ms')
+        const totalCost = t4 - t0
+        const tempFileCost = t4 - t3
+        console.log('[Render] 帧' + frameCount + ': tempFile耗时' + tempFileCost + 'ms, 总渲染' + totalCost + 'ms')
       }
     })
   },
