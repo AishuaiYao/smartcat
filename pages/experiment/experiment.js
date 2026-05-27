@@ -79,9 +79,10 @@ Page({
     const ctx = this.chartCtx
     if (!ctx || !this.chartCanvas) return
 
-    const W = this.chartCanvas.width / wx.getSystemInfoSync().pixelRatio
-    const H = this.chartCanvas.height / wx.getSystemInfoSync().pixelRatio
-    const padL = 36, padR = 12, padT = 16, padB = 24
+    const dpr = wx.getSystemInfoSync().pixelRatio
+    const W = this.chartCanvas.width / dpr
+    const H = this.chartCanvas.height / dpr
+    const padL = 40, padR = 12, padT = 20, padB = 28
     const chartW = W - padL - padR
     const chartH = H - padT - padB
 
@@ -90,41 +91,82 @@ Page({
     ctx.fillRect(0, 0, W, H)
 
     // 标题
-    ctx.font = 'bold 12px monospace'
+    ctx.font = 'bold 11px monospace'
     ctx.fillStyle = '#9C27B0'
     ctx.textAlign = 'center'
-    ctx.fillText('Error (px)', W / 2, 12)
+    ctx.fillText('Error (px)', W / 2, 14)
 
-    // 绘图区域
+    // 绘图区域边框
     ctx.strokeStyle = '#333'
     ctx.lineWidth = 0.5
     ctx.strokeRect(padL, padT, chartW, chartH)
 
-    // Y轴范围: [-80, +80], 零线在中间
-    const yMax = 80
-    // 绘制Y=0零线
-    ctx.beginPath()
-    ctx.strokeStyle = '#555'
-    ctx.setLineDash([3, 3])
-    ctx.moveTo(padL, padT + chartH / 2)
-    ctx.lineTo(padL + chartW, padT + chartH / 2)
-    ctx.stroke()
-    ctx.setLineDash([])
-
-    // Y轴刻度
-    ctx.font = '10px monospace'
-    ctx.fillStyle = '#888'
-    ctx.textAlign = 'right'
-    ctx.fillText('+' + yMax, padL - 4, padT + 4)
-    ctx.fillText('0', padL - 4, padT + chartH / 2 + 4)
-    ctx.fillText('-' + yMax, padL - 4, padT + chartH - 2)
-
-    // X轴刻度（帧号）
-    ctx.textAlign = 'center'
-    ctx.fillText('帧', padL + chartW / 2, H - 2)
-
-    // 绘制误差曲线
+    // ===== 自动计算Y轴范围（不截断，自适应缩放）=====
+    let yMin = 0, yMax = 80  // 默认范围
     const data = this.errorHistory
+    if (data.length >= 2) {
+      const maxPts = this.MAX_ERROR_POINTS
+      const startIdx = data.length > maxPts ? data.length - maxPts : 0
+      const displayData = data.slice(startIdx)
+      const absMax = Math.max(...displayData.map(Math.abs), 1)
+      // 向上取整到漂亮的数字: 10/20/40/80
+      yMax = absMax <= 10 ? 10 : (absMax <= 20 ? 20 : (absMax <= 40 ? 40 : (absMax <= 80 ? 80 : Math.ceil(absMax / 20) * 20)))
+    }
+
+    // ===== 网格线（细网格 + 主网格）=====
+    // 水平网格线：每1/4范围一条细线
+    const hSteps = 8
+    for (let i = 0; i <= hSteps; i++) {
+      const y = padT + (i / hSteps) * chartH
+      const isMajor = (i === hSteps / 2) || (i === 0) || (i === hSteps)
+      ctx.beginPath()
+      ctx.strokeStyle = isMajor ? '#888' : '#555'
+      ctx.lineWidth = isMajor ? 0.6 : 0.3
+      ctx.setLineDash(isMajor ? [3, 3] : [])
+      ctx.moveTo(padL, y)
+      ctx.lineTo(padL + chartW, y)
+      ctx.stroke()
+      ctx.setLineDash([])
+
+      // Y轴标签（每条主网格线都标）
+      if (i % 2 === 0) {
+        const val = yMax - (i / hSteps) * 2 * yMax
+        ctx.font = isMajor ? '9px monospace' : '8px monospace'
+        ctx.fillStyle = isMajor ? '#ccc' : '#999'
+        ctx.textAlign = 'right'
+        ctx.fillText((val >= 0 ? '+' : '') + val.toFixed(0), padL - 4, y + 3)
+      }
+    }
+
+    // 垂直网格线：每1/10宽度一条
+    const vSteps = 10
+    for (let i = 0; i <= vSteps; i++) {
+      const x = padL + (i / vSteps) * chartW
+      const isMajor = (i % 5 === 0)
+      ctx.beginPath()
+      ctx.strokeStyle = isMajor ? '#555' : '#3a3a3a'
+      ctx.lineWidth = isMajor ? 0.4 : 0.3
+      ctx.setLineDash(isMajor ? [] : [])
+      ctx.moveTo(x, padT)
+      ctx.lineTo(x, padT + chartH)
+      ctx.stroke()
+
+      // 每条线都显示X轴标签
+      if (vSteps > 0) {
+        ctx.font = isMajor ? '8px monospace' : '7px monospace'
+        ctx.fillStyle = isMajor ? '#999' : '#666'
+        ctx.textAlign = 'center'
+        ctx.fillText(Math.round(i / vSteps * this.MAX_ERROR_POINTS), x, H - 4)
+      }
+    }
+    
+    // X轴标签
+    ctx.font = '8px monospace'
+    ctx.fillStyle = '#666'
+    ctx.textAlign = 'center'
+    ctx.fillText('frame', padL + chartW / 2, H - 2)
+
+    // 绘制误差曲线（自适应Y轴，不截断）
     if (data.length < 2) return
 
     const maxPts = this.MAX_ERROR_POINTS
@@ -137,9 +179,8 @@ Page({
     for (let i = 0; i < displayData.length; i++) {
       const x = padL + (i / (maxPts - 1)) * chartW
       const val = displayData[i]
-      // clamp to range
-      const clampedVal = Math.max(-yMax, Math.min(yMax, val))
-      const y = padT + chartH / 2 - (clampedVal / yMax) * (chartH / 2)
+      // 自适应缩放，不clamp
+      const y = padT + chartH / 2 - (val / yMax) * (chartH / 2)
       if (i === 0) ctx.moveTo(x, y)
       else ctx.lineTo(x, y)
     }
@@ -149,19 +190,19 @@ Page({
     if (displayData.length > 0) {
       const lastVal = displayData[displayData.length - 1]
       const lastX = padL + ((displayData.length - 1) / (maxPts - 1)) * chartW
-      const lastClamped = Math.max(-yMax, Math.min(yMax, lastVal))
-      const lastY = padT + chartH / 2 - (lastClamped / yMax) * (chartH / 2)
+      const lastY = padT + chartH / 2 - (lastVal / yMax) * (chartH / 2)
 
+      // 当前点圆圈
       ctx.beginPath()
       ctx.arc(lastX, lastY, 3, 0, 2 * Math.PI)
       ctx.fillStyle = '#00FFAA'
       ctx.fill()
 
-      // 显示当前error数值
-      ctx.font = 'bold 11px monospace'
+      // 当前error数值
+      ctx.font = 'bold 10px monospace'
       ctx.fillStyle = '#00FFAA'
       ctx.textAlign = 'left'
-      ctx.fillText(Math.round(lastVal), lastX + 6, lastY + 4)
+      ctx.fillText(lastVal.toFixed(1), lastX + 5, lastY + 3)
     }
   },
 
@@ -314,8 +355,8 @@ Page({
       const frameNum = (frameBytes[0] << 8) | frameBytes[1]
       const voltageRaw = frameBytes[2]
       const voltage = (voltageRaw / 10).toFixed(1)
-      const motorA = Math.round(frameBytes[3] * 100 / 255)
-      const motorB = Math.round(frameBytes[4] * 100 / 255)
+      const motorA = (frameBytes[3] * 100 / 255).toFixed(1)
+      const motorB = (frameBytes[4] * 100 / 255).toFixed(1)
       const guide_x = frameBytes[5]
       
       // 计算误差: target_x(80) - guide_x
@@ -456,8 +497,8 @@ Page({
     wx.showLoading({ title: '正在生成图表...' })
 
     const width = 1800
-    const height = 900
-    const padL = 80, padR = 40, padT = 60, padB = 60
+    const height = 1000
+    const padL = 80, padR = 50, padT = 60, padB = 70
 
     const canvas = wx.createOffscreenCanvas({ type: '2d', width, height })
     const ctx = canvas.getContext('2d')
@@ -468,10 +509,13 @@ Page({
 
     const chartW = width - padL - padR
     const chartH = height - padT - padB
-    const yMax = 80
+
+    // ===== 自适应Y轴范围 =====
+    const absMax = Math.max(...data.map(Math.abs), 1)
+    let yMax = absMax <= 10 ? 10 : (absMax <= 20 ? 20 : (absMax <= 40 ? 40 : (absMax <= 80 ? 80 : Math.ceil(absMax / 20) * 20)))
 
     // 标题
-    ctx.font = 'bold 36px monospace'
+    ctx.font = 'bold 34px monospace'
     ctx.fillStyle = '#9C27B0'
     ctx.textAlign = 'center'
     ctx.fillText('PID Error Curve', width / 2, 38)
@@ -481,76 +525,98 @@ Page({
     ctx.lineWidth = 2
     ctx.strokeRect(padL, padT, chartW, chartH)
 
-    // 零线
-    ctx.beginPath()
-    ctx.strokeStyle = '#555'
-    ctx.setLineDash([8, 6])
-    ctx.moveTo(padL, padT + chartH / 2)
-    ctx.lineTo(padL + chartW, padT + chartH / 2)
-    ctx.stroke()
-    ctx.setLineDash([])
+    // ===== 网格线 =====
+    // 水平网格（9条线=8等分）
+    const hSteps = 8
+    for (let i = 0; i <= hSteps; i++) {
+      const y = padT + (i / hSteps) * chartH
+      const isCenter = (i === hSteps / 2)
+      const isEdge = (i === 0 || i === hSteps)
+      ctx.beginPath()
+      ctx.strokeStyle = isCenter ? '#999' : (isEdge ? '#888' : '#666')
+      ctx.lineWidth = isCenter ? 1.5 : (isEdge ? 1 : 0.5)
+      ctx.setLineDash(isCenter ? [8, 6] : [])
+      ctx.moveTo(padL, y)
+      ctx.lineTo(padL + chartW, y)
+      ctx.stroke()
+      ctx.setLineDash([])
 
-    // Y轴刻度
-    ctx.font = '24px monospace'
-    ctx.fillStyle = '#aaa'
-    ctx.textAlign = 'right'
-    ctx.fillText('+' + yMax + 'px', padL - 10, padT + 16)
-    ctx.fillText('0', padL - 10, padT + chartH / 2 + 8)
-    ctx.fillText('-' + yMax + 'px', padL - 10, padT + chartH - 4)
+      // Y轴刻度标签（每条线都标，更细密）
+      const val = yMax - (i / hSteps) * 2 * yMax
+      ctx.font = (isCenter || isEdge) ? '22px monospace' : '18px monospace'
+      ctx.fillStyle = isCenter ? '#eee' : (isEdge ? '#ccc' : '#999')
+      ctx.textAlign = 'right'
+      ctx.fillText((val >= 0 ? '+' : '') + val.toFixed(0), padL - 12, y + 7)
+    }
 
+    // 垂直网格（11条线=10等分）
+    const vSteps = 10
+    for (let i = 0; i <= vSteps; i++) {
+      const x = padL + (i / vSteps) * chartW
+      const isMajor = (i % 5 === 0)
+      ctx.beginPath()
+      ctx.strokeStyle = isMajor ? '#666' : '#444'
+      ctx.lineWidth = isMajor ? 0.8 : 0.6
+      ctx.moveTo(x, padT)
+      ctx.lineTo(x, padT + chartH)
+      ctx.stroke()
+
+      // 每条线都显示X轴标签
+      ctx.font = isMajor ? '18px monospace' : '15px monospace'
+      ctx.fillStyle = isMajor ? '#aaa' : '#777'
+      ctx.textAlign = 'center'
+      ctx.fillText(Math.round(i / vSteps * data.length), x, height - 22)
+    }
+    
     // X轴标签
+    ctx.font = '20px monospace'
+    ctx.fillStyle = '#888'
     ctx.textAlign = 'center'
-    ctx.fillText('Frame →', padL + chartW / 2, height - 12)
+    ctx.fillText('Frame →', padL + chartW / 2, height - 4)
 
-    // 数据范围
-    const maxPts = Math.min(data.length, 200)
-    const startIdx = data.length > maxPts ? data.length - maxPts : 0
-    const displayData = data.slice(startIdx)
-
-    // 误差曲线
+    // 全部数据绘制（自适应Y轴）
+    const maxPts = data.length
     ctx.beginPath()
     ctx.strokeStyle = '#00CC88'
     ctx.lineWidth = 3
-    for (let i = 0; i < displayData.length; i++) {
-      const x = padL + (i / (maxPts - 1)) * chartW
-      const val = displayData[i]
-      const clampedVal = Math.max(-yMax, Math.min(yMax, val))
-      const y = padT + chartH / 2 - (clampedVal / yMax) * (chartH / 2)
+    for (let i = 0; i < data.length; i++) {
+      const x = padL + (i / Math.max(maxPts - 1, 1)) * chartW
+      const val = data[i]
+      const y = padT + chartH / 2 - (val / yMax) * (chartH / 2)
       if (i === 0) ctx.moveTo(x, y)
       else ctx.lineTo(x, y)
     }
     ctx.stroke()
 
     // 当前值标记
-    if (displayData.length > 0) {
-      const lastVal = displayData[displayData.length - 1]
-      const lastX = padL + ((displayData.length - 1) / (maxPts - 1)) * chartW
-      const lastClamped = Math.max(-yMax, Math.min(yMax, lastVal))
-      const lastY = padT + chartH / 2 - (lastClamped / yMax) * (chartH / 2)
+    if (data.length > 0) {
+      const lastVal = data[data.length - 1]
+      const lastX = padL + ((data.length - 1) / Math.max(maxPts - 1, 1)) * chartW
+      const lastY = padT + chartH / 2 - (lastVal / yMax) * (chartH / 2)
 
       ctx.beginPath()
       ctx.arc(lastX, lastY, 8, 0, 2 * Math.PI)
       ctx.fillStyle = '#00FFAA'
       ctx.fill()
 
-      ctx.font = 'bold 28px monospace'
+      ctx.font = 'bold 26px monospace'
       ctx.fillStyle = '#00FFAA'
       ctx.textAlign = 'left'
-      ctx.fillText(Math.round(lastVal), lastX + 14, lastY + 9)
+      ctx.fillText(lastVal.toFixed(1), lastX + 14, lastY + 9)
     }
 
     // 底部统计信息
-    const mean = displayData.reduce((a, b) => a + b, 0) / displayData.length
+    const mean = data.reduce((a, b) => a + b, 0) / data.length
     let variance = 0
-    for (let v of displayData) variance += (v - mean) ** 2
-    const stdDev = Math.sqrt(variance / displayData.length)
-    const minE = Math.min(...displayData)
-    const maxE = Math.max(...displayData)
+    for (let v of data) variance += (v - mean) ** 2
+    const stdDev = Math.sqrt(variance / data.length)
+    const minE = Math.min(...data)
+    const maxE = Math.max(...data)
     
-    ctx.font = '22px monospace'
+    ctx.font = '20px monospace'
     ctx.fillStyle = '#888'
     ctx.textAlign = 'left'
-    ctx.fillText(`N=${displayData.length}  Mean=${mean.toFixed(1)}  Std=${stdDev.toFixed(1)}  Min=${minE}  Max=${maxE}`,
+    ctx.fillText(`N=${data.length}  Mean=${mean.toFixed(1)}  Std=${stdDev.toFixed(1)}  Min=${minE}  Max=${maxE}  YRange=[-${yMax},+${yMax}]`,
                  padL, height - 18)
 
     // 保存到相册
