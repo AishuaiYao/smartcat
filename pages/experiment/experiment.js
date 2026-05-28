@@ -18,9 +18,9 @@ Page({
   lastFrameTime: 0,
   imgSocket: null,          // 图像TCP连接
   recvBuffer: null,         // 接收缓冲区（Uint8Array动态增长）
-  FRAME_HEADER_SIZE: 6,     // 帧头: [帧号2B][电压1B][左PWM1B][右PWM1B][引导线x1B] + 补1B=6
+  FRAME_HEADER_SIZE: 7,     // 帧头: [帧号2B][电压1B][左PWM1B][右PWM1B][G1(顶部质心)1B][G2(底部质心)1B] = 7
   FRAME_IMAGE_SIZE: 19200,  // 图像数据: 160x120
-  FRAME_PACKET_SIZE: 19206, // 每帧总大小
+  FRAME_PACKET_SIZE: 19207, // 每帧总大小
   chartCtx: null,           // 误差图表canvas上下文
   errorHistory: [],         // 误差历史数据 [error值]
   MAX_ERROR_POINTS: 100,    // 图表最多显示点数
@@ -357,22 +357,24 @@ Page({
       const voltage = (voltageRaw / 10).toFixed(1)
       const motorA = (frameBytes[3] * 100 / 255).toFixed(1)
       const motorB = (frameBytes[4] * 100 / 255).toFixed(1)
-      const guide_x = frameBytes[5]
-      
-      // 计算误差: target_x(80) - guide_x
-      const error = 80 - guide_x
-      
+      const g1 = frameBytes[5]   // G1: 顶部质心x
+      const g2 = frameBytes[6]   // G2: 底部质心x
+
+      // 计算误差: 用(G1+G2)/2与图像中点80比较
+      const mid_x = (g1 + g2) / 2
+      const error = 80 - mid_x
+
       // 仅在电机运行时收集误差数据并绘制图表
       if (this.data.running) {
         this.errorHistory.push(error)
         if (this.errorHistory.length > this.MAX_ERROR_POINTS * 2) {
           this.errorHistory = this.errorHistory.slice(-this.MAX_ERROR_POINTS)
         }
-        
+
         // 更新误差曲线图
         this.drawErrorChart()
       }
-      
+
       this.setData({ voltage, motorA, motorB })
 
       // 提取图像数据
@@ -393,7 +395,7 @@ Page({
       console.log('[Recv] 帧' + frameCount + '(ESP32帧' + frameNum + '): 提取耗时' + extractCost + 'ms, 缓冲剩余' + this.recvBuffer.length + 'B, 帧间隔' + this.data.delayMs + 'ms')
 
       // 处理图像
-      this.processImage(grayData, { guide_x: guide_x }, Date.now())
+      this.processImage(grayData, { g1: g1, g2: g2 }, Date.now())
     }
   },
 
@@ -421,38 +423,65 @@ Page({
     
     const t2 = Date.now()
 
-    // ========== 绘制PID目标点和引导线 ==========
+    // ========== 绘制G1/G2质心点和参考信息 ==========
     if (pidData) {
-      const guide_x = pidData.guide_x
-      const target_x = 80, cy = 60
-      
+      const g1 = pidData.g1          // G1: 顶部质心x (图像上方区域)
+      const g2 = pidData.g2          // G2: 底部质心x (图像下方区域)
+      console.log('[Draw] G1=' + g1 + ' G2=' + g2 + ' pidData=', JSON.stringify(pidData))
+      const target_x = 80            // 图像中点
+
+      // 十字准星参考线（虚线绿色）
       ctx.beginPath()
       ctx.setLineDash([4, 4])
-      ctx.moveTo(10, cy); ctx.lineTo(150, cy)
+      ctx.moveTo(10, 60); ctx.lineTo(150, 60)
       ctx.moveTo(80, 10); ctx.lineTo(80, 110)
       ctx.strokeStyle = '#00CC00'; ctx.lineWidth = 1
       ctx.stroke()
       ctx.setLineDash([])
-      
+
+      // 目标中心点（空心绿圆）
       ctx.beginPath()
-      ctx.arc(target_x, cy, 5, 0, 2 * Math.PI)
+      ctx.arc(target_x, 60, 5, 0, 2 * Math.PI)
       ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2
       ctx.stroke()
-      
+
+      // G1点：顶部区域，紫红实心圆 y≈3 (scan_rows/2)
       ctx.beginPath()
-      ctx.moveTo(target_x, cy); ctx.lineTo(guide_x, cy)
-      ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2
+      ctx.arc(g1, 3, 5, 0, 2 * Math.PI)
+      ctx.fillStyle = '#CC88FF'
+      ctx.fill()
+      ctx.font = 'bold 10px monospace'
+      ctx.fillStyle = '#CC88FF'
+      ctx.textAlign = g1 > 100 ? 'right' : 'left'
+      ctx.fillText('G1:' + g1.toFixed(0), g1 + (g1 > 100 ? -8 : 8), 6)
+
+      // G2点：底部区域，橙红实心圆 y≈117
+      ctx.beginPath()
+      ctx.arc(g2, 117, 5, 0, 2 * Math.PI)
+      ctx.fillStyle = '#FF8844'
+      ctx.fill()
+      ctx.font = 'bold 10px monospace'
+      ctx.fillStyle = '#FF8844'
+      ctx.textAlign = g2 > 100 ? 'right' : 'left'
+      ctx.fillText('G2:' + g2.toFixed(0), g2 + (g2 > 100 ? -8 : 8), 120)
+
+      // G1-G2 连线（表示偏差方向）
+      ctx.beginPath()
+      ctx.moveTo(g1, 3); ctx.lineTo(g2, 117)
+      ctx.strokeStyle = '#AA6699'; ctx.lineWidth = 1.5
       ctx.stroke()
-      
+
+      // 中点标记 + error数值
+      const midX = (g1 + g2) / 2
+      ctx.beginPath()
+      ctx.arc(midX, 60, 3, 0, 2 * Math.PI)
+      ctx.fillStyle = '#FFFF00'
+      ctx.fill()
+
       ctx.font = 'bold 11px monospace'
       ctx.fillStyle = '#00FF00'
       ctx.textAlign = 'center'
-      ctx.fillText((target_x - guide_x) + 'px', (target_x + guide_x) / 2, cy - 8)
-      
-      ctx.beginPath()
-      ctx.arc(guide_x, cy, 4, 0, 2 * Math.PI)
-      ctx.fillStyle = '#CC88FF'
-      ctx.fill()
+      ctx.fillText((target_x - midX).toFixed(1) + 'px', target_x, 52)
     }
 
     const t3 = Date.now()
