@@ -408,12 +408,12 @@ Page({
       // 仅在电机运行时收集误差数据并绘制图表
       if (this.data.running) {
         this.errorHistory.push(error)
-        if (this.errorHistory.length > this.MAX_ERROR_POINTS * 2) {
-          this.errorHistory = this.errorHistory.slice(-this.MAX_ERROR_POINTS)
+        if (this.errorHistory.length > this.MAX_ERROR_POINTS * 5) {
+          this.errorHistory = this.errorHistory.slice(-this.MAX_ERROR_POINTS * 2)
         }
         this.g1g2DiffHistory.push(g1 - g2)
-        if (this.g1g2DiffHistory.length > this.MAX_ERROR_POINTS * 2) {
-          this.g1g2DiffHistory = this.g1g2DiffHistory.slice(-this.MAX_ERROR_POINTS)
+        if (this.g1g2DiffHistory.length > this.MAX_ERROR_POINTS * 5) {
+          this.g1g2DiffHistory = this.g1g2DiffHistory.slice(-this.MAX_ERROR_POINTS * 2)
         }
 
         // 更新误差曲线图
@@ -598,8 +598,11 @@ Page({
     const chartW = width - padL - padR
     const chartH = height - padT - padB
 
-    // ===== 自适应Y轴范围 =====
-    const absMax = Math.max(...data.map(Math.abs), 1)
+    // ===== 自适应Y轴范围（取G0-C和G1-G2的最大值）=====
+    const g1g2Data = this.g1g2DiffHistory
+    const absMaxG0C = Math.max(...data.map(Math.abs), 1)
+    const absMaxG1G2 = g1g2Data.length > 0 ? Math.max(...g1g2Data.map(Math.abs), 1) : 1
+    const absMax = Math.max(absMaxG0C, absMaxG1G2)
     let yMax = absMax <= 10 ? 10 : (absMax <= 20 ? 20 : (absMax <= 40 ? 40 : (absMax <= 80 ? 80 : Math.ceil(absMax / 20) * 20)))
 
     // 标题
@@ -607,6 +610,13 @@ Page({
     ctx.fillStyle = '#9C27B0'
     ctx.textAlign = 'center'
     ctx.fillText('PID Error Curve', width / 2, 38)
+    // 图例
+    ctx.font = '22px monospace'
+    ctx.fillStyle = '#00CC88'
+    ctx.textAlign = 'left'
+    ctx.fillText('— G0-C', padL + 10, 38)
+    ctx.fillStyle = '#FF8844'
+    ctx.fillText('— G1-G2', padL + 120, 38)
 
     // 绘图区域边框
     ctx.strokeStyle = '#444'
@@ -662,7 +672,7 @@ Page({
     ctx.textAlign = 'center'
     ctx.fillText('Frame →', padL + chartW / 2, height - 4)
 
-    // 全部数据绘制（自适应Y轴）
+    // 全部数据绘制（自适应Y轴）— G0-C曲线
     const maxPts = data.length
     ctx.beginPath()
     ctx.strokeStyle = '#00CC88'
@@ -676,7 +686,22 @@ Page({
     }
     ctx.stroke()
 
-    // 当前值标记
+    // G1-G2差值曲线（橙色）
+    const diffDataSave = this.g1g2DiffHistory
+    if (diffDataSave.length >= 2) {
+      ctx.beginPath()
+      ctx.strokeStyle = '#FF8844'
+      ctx.lineWidth = 3
+      for (let i = 0; i < diffDataSave.length; i++) {
+        const x = padL + (i / Math.max(maxPts - 1, 1)) * chartW
+        const y = padT + chartH / 2 - (diffDataSave[i] / yMax) * (chartH / 2)
+        if (i === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.stroke()
+    }
+
+    // 当前值标记（G0-C误差）
     if (data.length > 0) {
       const lastVal = data[data.length - 1]
       const lastX = padL + ((data.length - 1) / Math.max(maxPts - 1, 1)) * chartW
@@ -691,6 +716,23 @@ Page({
       ctx.fillStyle = '#00FFAA'
       ctx.textAlign = 'left'
       ctx.fillText(lastVal.toFixed(1), lastX + 14, lastY + 9)
+
+      // G1-G2差值当前值标记
+      if (diffDataSave.length > 0) {
+        const diffLastVal = diffDataSave[diffDataSave.length - 1]
+        const diffLastX = padL + ((diffDataSave.length - 1) / Math.max(maxPts - 1, 1)) * chartW
+        const diffLastY = padT + chartH / 2 - (diffLastVal / yMax) * (chartH / 2)
+
+        ctx.beginPath()
+        ctx.arc(diffLastX, diffLastY, 8, 0, 2 * Math.PI)
+        ctx.fillStyle = '#FF8844'
+        ctx.fill()
+
+        ctx.font = 'bold 26px monospace'
+        ctx.fillStyle = '#FF8844'
+        ctx.textAlign = 'left'
+        ctx.fillText(diffLastVal.toFixed(1), diffLastX + 14, diffLastY + 9)
+      }
     }
 
     // 底部统计信息
@@ -700,11 +742,19 @@ Page({
     const stdDev = Math.sqrt(variance / data.length)
     const minE = Math.min(...data)
     const maxE = Math.max(...data)
-    
+
+    let g1g2Stats = ''
+    if (diffDataSave.length > 0) {
+      const gMean = diffDataSave.reduce((a, b) => a + b, 0) / diffDataSave.length
+      const gMin = Math.min(...diffDataSave)
+      const gMax = Math.max(...diffDataSave)
+      g1g2Stats = `  G1G2: N=${diffDataSave.length} Mean=${gMean.toFixed(1)} [${gMin},${gMax}]`
+    }
+
     ctx.font = '20px monospace'
     ctx.fillStyle = '#888'
     ctx.textAlign = 'left'
-    ctx.fillText(`N=${data.length}  Mean=${mean.toFixed(1)}  Std=${stdDev.toFixed(1)}  Min=${minE}  Max=${maxE}  YRange=[-${yMax},+${yMax}]`,
+    ctx.fillText(`G0C: N=${data.length}  Mean=${mean.toFixed(1)}  Std=${stdDev.toFixed(1)}  Min=${minE}  Max=${maxE}  YRange=[-${yMax},+${yMax}]${g1g2Stats}`,
                  padL, height - 18)
 
     // 保存到相册
