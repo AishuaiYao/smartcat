@@ -201,7 +201,7 @@ Page({
       ctx.strokeStyle = '#FF8844'
       ctx.lineWidth = 1.5
       for (let i = 0; i < diffData.length; i++) {
-        const x = padL + ((startIdx + i) / (maxPts - 1)) * chartW
+        const x = padL + (i / (maxPts - 1)) * chartW
         // G1-G2差值用同一Y轴范围绘制
         const y = padT + chartH / 2 - (diffData[i] / yMax) * (chartH / 2)
         if (i === 0) ctx.moveTo(x, y)
