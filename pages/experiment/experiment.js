@@ -22,7 +22,8 @@ Page({
   FRAME_IMAGE_SIZE: 19200,  // 图像数据: 160x120
   FRAME_PACKET_SIZE: 19207, // 每帧总大小
   chartCtx: null,           // 误差图表canvas上下文
-  errorHistory: [],         // 误差历史数据 [error值]
+  errorHistory: [],         // 误差历史数据 [G0-C误差值]
+  g1g2DiffHistory: [],      // G1-G2差值历史数据
   MAX_ERROR_POINTS: 100,    // 图表最多显示点数
 
   onLoad(options) {
@@ -91,10 +92,17 @@ Page({
     ctx.fillRect(0, 0, W, H)
 
     // 标题
-    ctx.font = 'bold 11px monospace'
+    ctx.font = 'bold 9px monospace'
     ctx.fillStyle = '#9C27B0'
     ctx.textAlign = 'center'
     ctx.fillText('Error (px)', W / 2, 14)
+    // 图例
+    ctx.font = '9px monospace'
+    ctx.fillStyle = '#00CC88'
+    ctx.textAlign = 'left'
+    ctx.fillText('— G0-C', padL + 4, 14)
+    ctx.fillStyle = '#FF8844'
+    ctx.fillText('— G1-G2', padL + 50, 14)
 
     // 绘图区域边框
     ctx.strokeStyle = '#333'
@@ -166,7 +174,7 @@ Page({
     ctx.textAlign = 'center'
     ctx.fillText('frame', padL + chartW / 2, H - 2)
 
-    // 绘制误差曲线（自适应Y轴，不截断）
+    // 绘制误差曲线（G0-C误差，自适应Y轴，不截断）
     if (data.length < 2) return
 
     const maxPts = this.MAX_ERROR_POINTS
@@ -186,7 +194,23 @@ Page({
     }
     ctx.stroke()
 
-    // 当前值标记
+    // 绘制G1-G2差值曲线（橙色）
+    const diffData = this.g1g2DiffHistory.slice(startIdx)
+    if (diffData.length >= 2) {
+      ctx.beginPath()
+      ctx.strokeStyle = '#FF8844'
+      ctx.lineWidth = 1.5
+      for (let i = 0; i < diffData.length; i++) {
+        const x = padL + ((startIdx + i) / (maxPts - 1)) * chartW
+        // G1-G2差值用同一Y轴范围绘制
+        const y = padT + chartH / 2 - (diffData[i] / yMax) * (chartH / 2)
+        if (i === 0) ctx.moveTo(x, y)
+        else ctx.lineTo(x, y)
+      }
+      ctx.stroke()
+    }
+
+    // 当前值标记（G0-C误差）
     if (displayData.length > 0) {
       const lastVal = displayData[displayData.length - 1]
       const lastX = padL + ((displayData.length - 1) / (maxPts - 1)) * chartW
@@ -199,10 +223,27 @@ Page({
       ctx.fill()
 
       // 当前error数值
-      ctx.font = 'bold 10px monospace'
+      ctx.font = 'bold 9px monospace'
       ctx.fillStyle = '#00FFAA'
       ctx.textAlign = 'left'
       ctx.fillText(lastVal.toFixed(1), lastX + 5, lastY + 3)
+
+      // G1-G2差值当前值标记（在曲线末端位置，不带Δ符号）
+      if (diffData.length > 0) {
+        const diffVal = diffData[diffData.length - 1]
+        const diffLastX = padL + ((diffData.length - 1) / (maxPts - 1)) * chartW
+        const diffLastY = padT + chartH / 2 - (diffVal / yMax) * (chartH / 2)
+
+        ctx.beginPath()
+        ctx.arc(diffLastX, diffLastY, 3, 0, 2 * Math.PI)
+        ctx.fillStyle = '#FF8844'
+        ctx.fill()
+
+        ctx.font = 'bold 9px monospace'
+        ctx.fillStyle = '#FF8844'
+        ctx.textAlign = 'left'
+        ctx.fillText(diffVal.toFixed(1), diffLastX + 5, diffLastY + 3)
+      }
     }
   },
 
@@ -370,6 +411,10 @@ Page({
         if (this.errorHistory.length > this.MAX_ERROR_POINTS * 2) {
           this.errorHistory = this.errorHistory.slice(-this.MAX_ERROR_POINTS)
         }
+        this.g1g2DiffHistory.push(g1 - g2)
+        if (this.g1g2DiffHistory.length > this.MAX_ERROR_POINTS * 2) {
+          this.g1g2DiffHistory = this.g1g2DiffHistory.slice(-this.MAX_ERROR_POINTS)
+        }
 
         // 更新误差曲线图
         this.drawErrorChart()
@@ -439,49 +484,62 @@ Page({
       ctx.stroke()
       ctx.setLineDash([])
 
-      // 目标中心点（空心绿圆）
+      // 中心点C
       ctx.beginPath()
       ctx.arc(target_x, 60, 5, 0, 2 * Math.PI)
       ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2
       ctx.stroke()
-
-      // G1点：顶部区域，紫红实心圆 y≈3 (scan_rows/2)
-      ctx.beginPath()
-      ctx.arc(g1, 3, 5, 0, 2 * Math.PI)
-      ctx.fillStyle = '#CC88FF'
-      ctx.fill()
       ctx.font = 'bold 10px monospace'
-      ctx.fillStyle = '#CC88FF'
-      ctx.textAlign = g1 > 100 ? 'right' : 'left'
-      ctx.fillText('G1:' + g1.toFixed(0), g1 + (g1 > 100 ? -8 : 8), 6)
+      ctx.fillStyle = '#00FF00'
+      ctx.textAlign = 'left'
+      ctx.fillText('C', target_x + 6, 70)
 
-      // G2点：底部区域，橙红实心圆 y≈117
+      // G1点：顶部区域，橙红实心圆
+      const g1_y = 20
+      const diff = (g1 - g2).toFixed(1)
       ctx.beginPath()
-      ctx.arc(g2, 117, 5, 0, 2 * Math.PI)
+      ctx.arc(g1, g1_y, 3, 0, 2 * Math.PI)
       ctx.fillStyle = '#FF8844'
       ctx.fill()
       ctx.font = 'bold 10px monospace'
       ctx.fillStyle = '#FF8844'
-      ctx.textAlign = g2 > 100 ? 'right' : 'left'
-      ctx.fillText('G2:' + g2.toFixed(0), g2 + (g2 > 100 ? -8 : 8), 120)
+      ctx.textAlign = 'right'
+      ctx.fillText('G1:' + g1.toFixed(0), g1 - 6, g1_y + 4)
+      ctx.textAlign = 'left'
+      ctx.fillText(diff, g1 + 6, g1_y + 4)
+
+      // G2点：底部区域，紫红实心圆
+      const g2_y = 100
+      ctx.beginPath()
+      ctx.arc(g2, g2_y, 3, 0, 2 * Math.PI)
+      ctx.fillStyle = '#CC88FF'
+      ctx.fill()
+      ctx.font = 'bold 10px monospace'
+      ctx.fillStyle = '#CC88FF'
+      ctx.textAlign = 'right'
+      ctx.fillText('G2:' + g2.toFixed(0), g2 - 6, g2_y + 4)
 
       // G1-G2 连线（表示偏差方向）
       ctx.beginPath()
-      ctx.moveTo(g1, 3); ctx.lineTo(g2, 117)
+      ctx.moveTo(g1, g1_y); ctx.lineTo(g2, g2_y)
       ctx.strokeStyle = '#AA6699'; ctx.lineWidth = 1.5
       ctx.stroke()
 
-      // 中点标记 + error数值
+      // 中点G0标记（红色）+ 与C差值
       const midX = (g1 + g2) / 2
       ctx.beginPath()
       ctx.arc(midX, 60, 3, 0, 2 * Math.PI)
-      ctx.fillStyle = '#FFFF00'
+      ctx.fillStyle = '#FF4444'
       ctx.fill()
+      ctx.font = 'bold 10px monospace'
+      ctx.fillStyle = '#FF4444'
+      ctx.textAlign = 'left'
+      ctx.fillText('G0', midX + 5, 64)
 
-      ctx.font = 'bold 11px monospace'
+      ctx.font = 'bold 10px monospace'
       ctx.fillStyle = '#00FF00'
       ctx.textAlign = 'center'
-      ctx.fillText((target_x - midX).toFixed(1) + 'px', target_x, 52)
+      ctx.fillText((target_x - midX).toFixed(1), target_x, 52)
     }
 
     const t3 = Date.now()
@@ -509,6 +567,7 @@ Page({
       console.log('[Experiment] 发送START启动电机')
       // 清空误差数据，开始新一轮记录
       this.errorHistory = []
+      this.g1g2DiffHistory = []
       app.sendCommand('START:' + this.data.speed)
     } else {
       console.log('[Experiment] 发送STOP停止电机（图像流继续）')
