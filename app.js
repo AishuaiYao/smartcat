@@ -51,8 +51,7 @@ App({
     })
 
     socket.onMessage((res) => {
-      const info = String.fromCharCode(...new Uint8Array(res.message)).trim()
-      console.log('[App] <<< 收到消息: ' + info.substring(0, 50))
+      // 不在此处打印，由各页面回调自行处理日志显示
       this.globalData.messageCallbacks.forEach(cb => cb(res))
     })
 

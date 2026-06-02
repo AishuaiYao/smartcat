@@ -12,23 +12,28 @@ Page({
     kp: 0.50,
     motorA: 0,
     motorB: 0,
-    voltage: 0
+    voltage: 0,
+    encJumpL: 0,
+    encJumpR: 0
   },
+
+  encLogList: [],
 
   lastFrameTime: 0,
   imgSocket: null,          // 图像TCP连接
-  recvBuffer: null,         // 接收缓冲区（Uint8Array动态增长）
-  FRAME_HEADER_SIZE: 7,     // 帧头: [帧号2B][电压1B][左PWM1B][右PWM1B][G1(顶部质心)1B][G2(底部质心)1B] = 7
+  recvBuffer: null,         // 图像接收缓冲区（Uint8Array动态增长）
+  textBuffer: '',           // 命令通道文本缓冲区（解决TCP拆包）
+  FRAME_HEADER_SIZE: 9,     // 帧头: [帧号2][电压1][左PWM1][右PWM1][G1][G2][左跳变率1][右跳变率1] = 9
   FRAME_IMAGE_SIZE: 19200,  // 图像数据: 160x120
-  FRAME_PACKET_SIZE: 19207, // 每帧总大小
+  FRAME_PACKET_SIZE: 19209, // 每帧总大小
   chartCtx: null,           // 误差图表canvas上下文
   errorHistory: [],         // 误差历史数据 [G0-C误差值]
   g1g2DiffHistory: [],      // G1-G2差值历史数据
   MAX_ERROR_POINTS: 100,    // 图表最多显示点数
 
   onLoad(options) {
-    console.log('[Experiment] ========== 页面加载(TCP模式) ==========')
-    console.log('[Experiment] debug=' + options.debug + ', connected=' + app.globalData.connected)
+    // console.log('[Experiment] ========== 页面加载(TCP模式) ==========')
+    // console.log('[Experiment] debug=' + options.debug + ', connected=' + app.globalData.connected)
     
     if (options.debug === '1') {
       this.setData({ debugMode: true, streaming: true })
@@ -37,17 +42,17 @@ Page({
     }
     
     if (!app.globalData.connected) {
-      console.log('[Experiment] !!! 设备未连接，返回')
+      // console.log('[Experiment] !!! 设备未连接，返回')
       wx.showToast({ title: '设备未连接', icon: 'none' })
       wx.navigateBack()
       return
     }
     
-    console.log('[Experiment] 注册回调，自动开始实验')
+    // console.log('[Experiment] 注册回调，自动开始实验')
     this.registerCallbacks()
 
     // 进入页面立即发送EXPERIMENT命令，建立图像通道
-    console.log('[Experiment] 自动发送EXPERIMENT命令')
+    // console.log('[Experiment] 自动发送EXPERIMENT命令')
     app.sendCommand('EXPERIMENT')
   },
 
@@ -59,7 +64,7 @@ Page({
     const query = wx.createSelectorQuery().in(this)
     query.select('#errorChart').fields({ node: true, size: true }).exec((res) => {
       if (!res[0] || !res[0].node) {
-        console.warn('[Chart] canvas节点未找到')
+        // console.warn('[Chart] canvas节点未找到')
         return
       }
       const canvas = res[0].node
@@ -70,7 +75,7 @@ Page({
       ctx.scale(dpr, dpr)
       this.chartCanvas = canvas
       this.chartCtx = ctx
-      console.log('[Chart] 初始化完成, 尺寸=' + res[0].width + 'x' + res[0].height)
+      // console.log('[Chart] 初始化完成, 尺寸=' + res[0].width + 'x' + res[0].height)
       // 立即绘制空坐标系
       this.drawErrorChart()
     })
@@ -248,7 +253,6 @@ Page({
   },
 
   onUnload() {
-    console.log('[Experiment] 页面卸载')
     this.removeCallbacks()
     
     if (this.imgSocket) {
@@ -276,50 +280,54 @@ Page({
 
   onMessage(res) {
     const bytes = new Uint8Array(res.message)
-    const str = String.fromCharCode(...bytes.subarray(0, Math.min(bytes.length, 50)))
-    console.log('[Experiment] TCP消息: ' + str)
-    
-    if (str.includes('IMG_OK')) {
-      console.log('[Experiment] 命令通道收到IMG_OK(忽略，图像通道独立处理)')
-      return
-    }
-    
-    if (str.includes('WAITING_IMG_CONN')) {
-      console.log('[Experiment] ESP32等待图像连接，立即建立图像TCP')
-      this.setupImageTCP()
-      return
-    }
-    
-    if (str.includes('IMG_NOT_READY') || str.includes('IMG_CONN_FAILED')) {
-      console.log('[Experiment] 图像通道失败')
-      wx.showToast({ title: '图像通道建立失败', icon: 'none' })
-      return
-    }
 
-    // 兼容旧UDP相关响应（防止误触发）
-    if (str.includes('UDP_OK') || str.includes('UDP_NOT_READY')) {
-      console.log('[Experiment] 收到旧的UDP相关消息，忽略')
-      return
+    // 追加到文本缓冲区（解决TCP拆包：一条[Enc]日志可能分多次onMessage到达）
+    this.textBuffer += String.fromCharCode(...bytes)
+
+    // 按换行符切分完整消息
+    let nlIdx
+    while ((nlIdx = this.textBuffer.indexOf('\n')) !== -1) {
+      const line = this.textBuffer.substring(0, nlIdx).trim()
+      this.textBuffer = this.textBuffer.substring(nlIdx + 1)
+      if (!line) continue
+
+      // 收集所有日志（用于云端上传）
+      this.encLogList.push(line)
+
+      if (line.includes('[Enc]')) {
+        console.log(line)
+      }
+
+      if (line.includes('WAITING_IMG_CONN')) {
+        this.setupImageTCP()
+        continue
+      }
+
+      if (line.includes('IMG_NOT_READY') || line.includes('IMG_CONN_FAILED')) {
+        wx.showToast({ title: '图像通道建立失败', icon: 'none' })
+      }
+
+      // IMG_OK / UDP_OK 等其他消息忽略
     }
   },
 
   onClose() {
-    console.log('[Experiment] TCP命令连接已关闭')
+    // console.log('[Experiment] TCP命令连接已关闭')
     this.setData({ streaming: false })
   },
 
   onError(err) {
-    console.log('[Experiment] TCP连接错误:', err)
+    // console.log('[Experiment] TCP连接错误:', err)
     wx.showToast({ title: '连接断开', icon: 'none' })
     this.setData({ streaming: false })
   },
 
   setupImageTCP() {
-    console.log('========== 图像TCP初始化 ==========')
-    
+    // console.log('========== 图像TCP初始化 ==========')
+
     const imgSock = wx.createTCPSocket()
     if (!imgSock) {
-      console.log('[Experiment] 创建图像TCPSocket失败')
+      // console.log('[Experiment] 创建图像TCPSocket失败')
       wx.showToast({ title: '创建连接失败', icon: 'none' })
       return
     }
@@ -327,7 +335,7 @@ Page({
     this.recvBuffer = new Uint8Array(0)
 
     imgSock.onConnect(() => {
-      console.log('[Experiment] 图像TCP连接成功，发送握手')
+      // console.log('[Experiment] 图像TCP连接成功，发送握手')
       imgSock.write('IMG_CONN\n')
     })
 
@@ -340,7 +348,7 @@ Page({
         const str = String.fromCharCode(...newData)
         console.log('[ImgTCP] 收到: ' + str)
         if (str.includes('IMG_OK')) {
-          console.log('[ImgTCP] 图像通道就绪，开始渲染画面')
+          // console.log('[ImgTCP] 图像通道就绪，开始渲染画面')
           this.setData({ streaming: true })
           return  // 握手响应，不是帧数据
         }
@@ -350,7 +358,7 @@ Page({
       if (this.lastMsgTime > 0) {
         const gap = t0 - this.lastMsgTime
         if (gap > 200) {
-          console.log('[GAP] onMessage空闲+' + gap + 'ms')
+          // console.log('[GAP] onMessage空闲+' + gap + 'ms')
         }
       }
       this.lastMsgTime = t0
@@ -366,20 +374,20 @@ Page({
     })
 
     imgSock.onClose(() => {
-      console.log('[Experiment] 图像TCP已关闭')
+      // console.log('[Experiment] 图像TCP已关闭')
       this.setData({ streaming: false })
     })
 
     imgSock.onError((err) => {
-      console.log('[Experiment] 图像TCP错误:', err)
+      // console.log('[Experiment] 图像TCP错误:', err)
     })
 
-    console.log('[Experiment] 发起图像TCP连接...')
+    // console.log('[Experiment] 发起图像TCP连接...')
     imgSock.connect({
       address: app.globalData.esp32IP,
       port: app.globalData.esp32Port   // 同端口5000，第二条连接
     })
-    console.log('=====================================')
+    // console.log('=====================================')
   },
 
   extractFrames() {
@@ -400,6 +408,8 @@ Page({
       const motorB = (frameBytes[4] * 100 / 255).toFixed(1)
       const g1 = frameBytes[5]   // G1: 顶部质心x
       const g2 = frameBytes[6]   // G2: 底部质心x
+      const encJumpL = frameBytes[7]   // 左轮跳变率%
+      const encJumpR = frameBytes[8]   // 右轮跳变率%
 
       // 计算误差: 用(G1+G2)/2与图像中点80比较
       const mid_x = (g1 + g2) / 2
@@ -420,7 +430,7 @@ Page({
         this.drawErrorChart()
       }
 
-      this.setData({ voltage, motorA, motorB })
+      this.setData({ voltage, motorA, motorB, encJumpL, encJumpR })
 
       // 提取图像数据
       const grayData = frameBytes.slice(this.FRAME_HEADER_SIZE)
@@ -437,7 +447,7 @@ Page({
       this.setData({ frameCount })
 
       const extractCost = Date.now() - tExtractStart
-      console.log('[Recv] 帧' + frameCount + '(ESP32帧' + frameNum + '): 提取耗时' + extractCost + 'ms, 缓冲剩余' + this.recvBuffer.length + 'B, 帧间隔' + this.data.delayMs + 'ms')
+      // console.log('[Recv] 帧' + frameCount + '(ESP32帧' + frameNum + '): 提取耗时' + extractCost + 'ms, 缓冲剩余' + this.recvBuffer.length + 'B, 帧间隔' + this.data.delayMs + 'ms')
 
       // 处理图像
       this.processImage(grayData, { g1: g1, g2: g2 }, Date.now())
@@ -446,7 +456,7 @@ Page({
 
   processImage(grayData, pidData, tAssembleEnd) {
     const t0 = Date.now()
-    console.log('[Process] 进入processImage, 距提取完成+' + (t0 - tAssembleEnd) + 'ms')
+    // console.log('[Process] 进入processImage, 距提取完成+' + (t0 - tAssembleEnd) + 'ms')
     
     const width = 160, height = 120
     const rgbaData = new Uint8ClampedArray(width * height * 4)
@@ -472,7 +482,7 @@ Page({
     if (pidData) {
       const g1 = pidData.g1          // G1: 顶部质心x (图像上方区域)
       const g2 = pidData.g2          // G2: 底部质心x (图像下方区域)
-      console.log('[Draw] G1=' + g1 + ' G2=' + g2 + ' pidData=', JSON.stringify(pidData))
+      // console.log('[Draw] G1=' + g1 + ' G2=' + g2 + ' pidData=', JSON.stringify(pidData))
       const target_x = 80            // 图像中点
 
       // 十字准星参考线（虚线绿色）
@@ -545,7 +555,7 @@ Page({
     const t3 = Date.now()
     const frameCount = this.data.frameCount
 
-    console.log('[Draw] 帧' + frameCount + ': RGBA+' + (t1-t0) + 'ms Canvas+' + (t2-t1) + 'ms 绘图+' + (t3-t2) + 'ms | 准备转tempFile')
+    // console.log('[Draw] 帧' + frameCount + ': RGBA+' + (t1-t0) + 'ms Canvas+' + (t2-t1) + 'ms 绘图+' + (t3-t2) + 'ms | 准备转tempFile')
 
     wx.canvasToTempFilePath({
       canvas,
@@ -554,7 +564,7 @@ Page({
         this.setData({ imageData: res.tempFilePath })
         const totalCost = t4 - t0
         const tempFileCost = t4 - t3
-        console.log('[Render] 帧' + frameCount + ': tempFile耗时' + tempFileCost + 'ms, 总渲染' + totalCost + 'ms')
+        // console.log('[Render] 帧' + frameCount + ': tempFile耗时' + tempFileCost + 'ms, 总渲染' + totalCost + 'ms')
       }
     })
   },
@@ -564,15 +574,40 @@ Page({
     this.setData({ running })
     if (this.data.debugMode) return
     if (running) {
-      console.log('[Experiment] 发送START启动电机')
-      // 清空误差数据，开始新一轮记录
+      // console.log('[Experiment] 发送START启动电机')
+      // 清空误差数据和日志，开始新一轮记录
       this.errorHistory = []
       this.g1g2DiffHistory = []
+      this.encLogList = []
       app.sendCommand('START:' + this.data.speed)
     } else {
-      console.log('[Experiment] 发送STOP停止电机（图像流继续）')
+      // console.log('[Experiment] 发送STOP停止电机（图像流继续）')
       app.sendCommand('STOP')
     }
+  },
+
+  uploadLogToCloud() {
+    const logs = this.encLogList
+    if (logs.length === 0) return
+    wx.showToast({ title: '上传日志' + logs.length + '条...', icon: 'loading', duration: 1500 })
+    const db = wx.cloud.database()
+    db.collection('log').add({
+      data: {
+        date: new Date(),
+        count: logs.length,
+        content: logs.join('\n'),
+        speed: this.data.speed,
+        kp: this.data.kp
+      },
+      success: () => {
+        console.log('[Experiment] 日志已上传云端, 共' + logs.length + '条')
+        wx.showToast({ title: '日志上传成功(' + logs.length + '条)', icon: 'success' })
+      },
+      fail: (e) => {
+        console.log('[Experiment] 日志上传失败:', e)
+        wx.showToast({ title: '日志上传失败,请检查网络', icon: 'none' })
+      }
+    })
   },
 
   onSaveChart() {
@@ -766,9 +801,11 @@ Page({
           filePath: res.tempFilePath,
           success: () => {
             wx.showToast({ title: '已保存到相册', icon: 'success' })
+            this.uploadLogToCloud()  // 同时上传日志到云端
           },
           fail: () => {
             wx.showToast({ title: '保存失败', icon: 'none' })
+            this.uploadLogToCloud()  // 图像保存失败也尝试上传日志
           }
         })
       },

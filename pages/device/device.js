@@ -22,9 +22,9 @@ Page({
 
   log(msg) {
     const time = new Date().toLocaleTimeString()
-    console.log('[Device] ' + time + ' ' + msg)
+    console.log(time + ' | ' + msg)
     const msgs = this.data.logMsgs
-    msgs.unshift(time + ' | ' + msg)
+    msgs.unshift(msg)
     if (msgs.length > 50) msgs.pop()
     this.setData({ logMsgs: msgs })
   },
@@ -88,7 +88,6 @@ Page({
       this.setData({ connected: true, connecting: false })
       return
     }
-    this.log('<<< 收到数据包: ' + bytes.length + ' 字节')
     this.onReceiveData(res.message)
   },
 

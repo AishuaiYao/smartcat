@@ -4,9 +4,9 @@
     <text>{{streaming ? delayMs + 'ms | ' + voltage + 'V' : 'Connecting...'}}</text>
   </view>
 
-  <!-- 状态栏 - 右上角（电机PWM） -->
+  <!-- 状态栏 - 右上角（电机PWM + 编码器跳变率） -->
   <view class="status-bar-right">
-    <text>MOTOR:{{motorA}}/{{motorB}}</text>
+    <text>MOTOR:{{motorA}}/{{motorB}}\nENC:L{{encJumpL}}% R{{encJumpR}}%</text>
   </view>
 
   <!-- 顶部控制栏 -->
