@@ -595,7 +595,7 @@ Page({
       data: {
         date: new Date(),
         count: logs.length,
-        content: logs.join('\n'),
+        content: logs.join('\r\n') + '\r\n',
         speed: this.data.speed,
         kp: this.data.kp
       },
