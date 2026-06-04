@@ -23,9 +23,9 @@ Page({
   imgSocket: null,          // 图像TCP连接
   recvBuffer: null,         // 图像接收缓冲区（Uint8Array动态增长）
   textBuffer: '',           // 命令通道文本缓冲区（解决TCP拆包）
-  FRAME_HEADER_SIZE: 9,     // 帧头: [帧号2][电压1][左PWM1][右PWM1][G1][G2][左跳变率1][右跳变率1] = 9
+  FRAME_HEADER_SIZE: 10,    // 帧头: [帧号2][电压1][左PWM1][右PWM1][G1][G2][左跳变率1][右跳变率1][电机运行1] = 10
   FRAME_IMAGE_SIZE: 19200,  // 图像数据: 160x120
-  FRAME_PACKET_SIZE: 19209, // 每帧总大小
+  FRAME_PACKET_SIZE: 19210, // 每帧总大小
   chartCtx: null,           // 误差图表canvas上下文
   errorHistory: [],         // 误差历史数据 [G0-C误差值]
   g1g2DiffHistory: [],      // G1-G2差值历史数据
@@ -410,6 +410,14 @@ Page({
       const g2 = frameBytes[6]   // G2: 底部质心x
       const encJumpL = frameBytes[7]   // 左轮跳变率%
       const encJumpR = frameBytes[8]   // 右轮跳变率%
+      const motorRunning = frameBytes[9]   // ESP32侧电机实际运行: 1=运行 0=停止
+
+      // 碰撞自动停车：ESP32侧已停但小程序按钮仍为运行态
+      // 手动操作后500ms保护期，避免时序竞争导致误触发
+      const autoStopGuard = this.lastUserRunningChange ? (Date.now() - this.lastUserRunningChange) : 9999
+      if (motorRunning === 0 && this.data.running && autoStopGuard > 500) {
+        this.setData({ running: false })
+      }
 
       // 计算误差: 用(G1+G2)/2与图像中点80比较
       const mid_x = (g1 + g2) / 2
@@ -572,6 +580,7 @@ Page({
   onStartStop() {
     const running = !this.data.running
     this.setData({ running })
+    this.lastUserRunningChange = Date.now()  // 记录手动操作时间，防止自动切换误触发
     if (this.data.debugMode) return
     if (running) {
       // console.log('[Experiment] 发送START启动电机')
