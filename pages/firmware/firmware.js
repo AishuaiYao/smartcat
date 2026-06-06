@@ -120,7 +120,7 @@ Page({
 
   // Step 4: 确认切换回设备WiFi
   confirmStep4() {
-    this.setData({ step4Done: true, status: '已就绪，请确保设备页面已连接 ESP32', statusType: 'info' })
+    this.setData({ step4Done: true, status: '已就绪，请确保设备页面已连接 LinePatrol V1', statusType: 'info' })
   },
 
   // Step 5: 烧录固件

@@ -51,7 +51,7 @@
       <text class="step-text">将手机 WiFi 切换回 LinePatrol V1</text>
     </view>
     <view class="step-body">
-      <view class="step-tip" wx:if="{{!step4Done && step3Done}}">烧录需要通过设备热点直连 ESP32</view>
+      <view class="step-tip" wx:if="{{!step4Done && step3Done}}">烧录需要通过设备热点直连 LinePatrol V1</view>
       <button class="btn-step" bindtap="confirmStep4" wx:if="{{step3Done && !step4Done}}">确认已切换</button>
     </view>
   </view>
@@ -60,10 +60,10 @@
   <view class="step {{step5Done ? 'step-done' : (step4Done ? 'step-current' : 'step-pending')}}">
     <view class="step-header">
       <view class="step-icon">{{step5Done ? '✓' : '5'}}</view>
-      <text class="step-text">烧录固件到 ESP32</text>
+      <text class="step-text">烧录固件到 LinePatrol V1</text>
     </view>
     <view class="step-body">
-      <view class="step-tip" wx:if="{{!step5Done && step4Done}}">确保设备页面已连接 ESP32，然后点击烧录</view>
+      <view class="step-tip" wx:if="{{!step5Done && step4Done}}">确保设备页面已连接 LinePatrol V1，然后点击烧录</view>
       <button class="btn-flash" bindtap="startFlash" disabled="{{flashing || !step4Done || step5Done}}">{{flashing ? '烧录中...' : '烧录'}}</button>
     </view>
   </view>
