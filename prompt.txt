@@ -11,3 +11,20 @@
 · 不能使用错误捕捉逻辑，在当前阶段我们需要让所有错误暴露出来。
 · 保持代码主体不做大的修改，只完成需求中的部分代码。
 需求/问题：
+    我现在要实现小程序和ESP32端的OTA功能，任务一 在小程序端设备界面底部不需要显示日志和使用说明的ui了，改为一个更新固件的button。
+    点击这个button后，进入到更新固件的界面，界面中包含三个元素，最上面是下来菜单，可以选在要更新的固件的版本，候选的固件版本需要
+    通过读取云存储的firmware目录下的文件决定。下面是烧录button 在下面是进度button。当然返回上一界面的button和烧录最后状态的
+    文本提示也都要有。然后esp32端的代码也要适配OTA模式进行修改。
+
+    cloud://cloud1-2g1p3hkle3a5feb1.636c-cloud1-2g1p3hkle3a5feb1-1412914450/firmware/model_in_flash_rodata.bin
+
+
+
+
+
+https://636c-cloud1-2g1p3hkle3a5feb1-1412914450.tcb.qcloud.la/firmware/model_in_flash_rodata.bin?sign=719fc79812c5345811b092e4fbe9891e&t=1780746563
+https://636c-cloud1-2g1p3hkle3a5feb1-1412914450.tcb.qcloud.la/firmware/ESP32_GENERIC_S3-SPIRAM_OCT-20250809-v1.26.0.bin?sign=350653bdd3360352a75def9e62b1c39e&t=1780746601
+https://636c-cloud1-2g1p3hkle3a5feb1-1412914450.tcb.qcloud.la/firmware/ESP32_GENERIC_S3-SPIRAM_OCT-20250809-v1.26.0.bin?sign=f750bbe99377e4ad9eb7991508c92011&t=1780746958
+https://636c-cloud1-2g1p3hkle3a5feb1-1412914450.tcb.qcloud.la/firmware/ESP32_GENERIC_S3-SPIRAM_OCT-20250809-v1.26.0.bin?sign=5713d14608bde223cfab5d7320b418a7&t=1780747116
+
+

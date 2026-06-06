@@ -225,6 +225,11 @@ Page({
     wx.navigateTo({ url: '/pages/collect/collect' + (this.data.debugMode ? '?debug=1' : '') })
   },
 
+  goToFirmware() {
+    this.log('>>> 跳转固件升级页面')
+    wx.navigateTo({ url: '/pages/firmware/firmware' })
+  },
+
   goToExperiment() {
     this.log('>>> 跳转实验页面')
     wx.navigateTo({ url: '/pages/experiment/experiment' + (this.data.debugMode ? '?debug=1' : '') })

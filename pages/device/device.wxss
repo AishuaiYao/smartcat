@@ -72,6 +72,11 @@
   color: white;
 }
 
+.btn-firmware {
+  background-color: #fa8c16;
+  color: white;
+}
+
 .preview-section {
   width: 100%;
   margin-top: 30rpx;
@@ -111,68 +116,4 @@
   font-size: 32rpx;
 }
 
-.tips {
-  width: 100%;
-  margin-top: 40rpx;
-  padding: 24rpx;
-  background-color: #fffbe6;
-  border-radius: 12rpx;
-  border: 1rpx solid #ffe58f;
-}
 
-.tips-title {
-  font-size: 28rpx;
-  font-weight: bold;
-  color: #d48806;
-  margin-bottom: 16rpx;
-  display: block;
-}
-
-.tip-item {
-  display: flex;
-  align-items: flex-start;
-  margin-top: 16rpx;
-}
-
-.tip-label {
-  flex-shrink: 0;
-  min-width: 140rpx;
-  font-size: 26rpx;
-  font-weight: 500;
-  color: #d48806;
-}
-
-.tip-desc {
-  flex: 1;
-  font-size: 24rpx;
-  color: #666;
-  line-height: 1.5;
-}
-
-.log-panel {
-  width: 100%;
-  margin-top: 30rpx;
-  padding: 20rpx;
-  background-color: #1a1a2e;
-  border-radius: 12rpx;
-}
-
-.log-title {
-  font-size: 24rpx;
-  color: #00ff88;
-  display: block;
-  margin-bottom: 12rpx;
-  font-weight: bold;
-}
-
-.log-scroll {
-  height: 500rpx;
-}
-
-.log-line {
-  display: block;
-  font-size: 20rpx;
-  color: #e0e0e0;
-  margin-top: 6rpx;
-  font-family: monospace;
-}

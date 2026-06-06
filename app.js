@@ -8,7 +8,10 @@ App({
     udpLocalPort: 5001,
     messageCallbacks: [],
     closeCallbacks: [],
-    errorCallbacks: []
+    errorCallbacks: [],
+    otaMessageCallback: null,
+    cloudEnv: 'cloud1-2g1p3hkle3a5feb1',
+    cloudEnvPrefix: 'cloud1-2g1p3hkle3a5feb1.636c-cloud1-2g1p3hkle3a5feb1-1412914450'
   },
 
   onLaunch() {
@@ -51,7 +54,10 @@ App({
     })
 
     socket.onMessage((res) => {
-      // 不在此处打印，由各页面回调自行处理日志显示
+      if (this.globalData.otaMessageCallback) {
+        this.globalData.otaMessageCallback(res)
+        return
+      }
       this.globalData.messageCallbacks.forEach(cb => cb(res))
     })
 
@@ -96,6 +102,23 @@ App({
     }
     this.globalData.tcpSocket.write(buffer)
     return true
+  },
+
+  sendBinary(data) {
+    if (!this.globalData.tcpSocket) {
+      console.log('[App] !!! TCP未连接，无法发送二进制数据')
+      return false
+    }
+    this.globalData.tcpSocket.write(data)
+    return true
+  },
+
+  setOTACallback(cb) {
+    this.globalData.otaMessageCallback = cb
+  },
+
+  clearOTACallback() {
+    this.globalData.otaMessageCallback = null
   },
 
   disconnectTCP() {
