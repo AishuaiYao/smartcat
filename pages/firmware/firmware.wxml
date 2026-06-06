@@ -10,7 +10,7 @@
       <text class="step-text">选择要更新的固件版本</text>
     </view>
     <view class="step-body">
-      <picker mode="selector" range="{{firmwareList}}" range-key="filename" value="{{selectedIndex}}" bindchange="onPickerChange" disabled="{{downloading || flashing}}">
+      <picker mode="selector" range="{{firmwareList}}" value="{{selectedIndex}}" bindchange="onPickerChange" disabled="{{downloading || flashing}}">
         <view class="picker-box {{selectedIndex < 0 ? 'placeholder' : ''}}">
           <text>{{selectedIndex < 0 ? '请点击选择固件' : selectedName}}</text>
           <text class="picker-arrow">▼</text>

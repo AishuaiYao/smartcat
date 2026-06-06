@@ -34,7 +34,7 @@ Page({
   // Step 1: 选择固件
   onPickerChange(e) {
     const idx = e.detail.value
-    const name = this.data.firmwareList[idx].filename
+    const name = this.data.firmwareList[idx]
     this.setData({
       selectedIndex: idx,
       selectedName: name,
@@ -49,62 +49,71 @@ Page({
 
   // Step 3: 拉取固件到本地
   startFetch() {
-    const item = this.data.firmwareList[this.data.selectedIndex]
-    if (!item) return
+    const filename = this.data.firmwareList[this.data.selectedIndex]
+    if (!filename) return
 
-    this.setData({ downloading: true, status: '正在下载固件...', statusType: 'info' })
+    this.setData({ downloading: true, status: '正在获取下载地址...', statusType: 'info' })
 
-    console.log('[Firmware] 开始下载:', item.filename)
-    console.log('[Firmware] URL:', item.url)
+    console.log('[Firmware] 请求云函数获取下载地址:', filename)
 
-    // 调试：查看 getTempFileURL 的返回值
-    const fileID = 'cloud://' + app.globalData.cloudEnvPrefix + '/firmware/' + item.filename
-    wx.cloud.getTempFileURL({
-      fileList: [fileID],
-      success: res => {
-        console.log('[Firmware] getTempFileURL 返回:', JSON.stringify(res.fileList[0]))
-      },
-      fail: err => {
-        console.log('[Firmware] getTempFileURL 失败:', JSON.stringify(err))
-      }
-    })
+    const fileID = 'cloud://' + app.globalData.cloudEnvPrefix + '/firmware/' + filename
 
-    wx.downloadFile({
-      url: item.url,
-      success: dRes => {
-        if (dRes.statusCode !== 200) {
-          console.error('[Firmware] HTTP 状态码异常:', dRes.statusCode)
-          this.setData({ downloading: false, status: '下载失败: HTTP ' + dRes.statusCode, statusType: 'error' })
+    wx.cloud.callFunction({
+      name: 'getFirmwareUrl',
+      data: { fileID: fileID },
+      success: cfRes => {
+        const { success, url } = cfRes.result
+        if (!success || !url) {
+          console.error('[Firmware] 获取下载地址失败:', cfRes.result)
+          this.setData({ downloading: false, status: '获取下载地址失败', statusType: 'error' })
           return
         }
-        console.log('[Firmware] 下载完成, tempFilePath:', dRes.tempFilePath)
-        const fs = wx.getFileSystemManager()
-        fs.readFile({
-          filePath: dRes.tempFilePath,
-          success: readRes => {
-            const buffer = readRes.data
-            const size = buffer.byteLength || buffer.length
-            console.log('[Firmware] 固件大小:', size, 'bytes')
-            this._otaData = new Uint8Array(buffer instanceof ArrayBuffer ? buffer : buffer.buffer)
-            this._otaFilename = item.filename
-            const sizeStr = size > 1048576 ? (size / 1048576).toFixed(2) + ' MB' : (size / 1024).toFixed(0) + ' KB'
-            this.setData({
-              downloading: false,
-              step3Done: true,
-              otaSize: sizeStr,
-              status: '拉取成功！请切换回设备 WiFi',
-              statusType: 'success'
+
+        console.log('[Firmware] 获取到下载地址:', url)
+        this.setData({ status: '正在下载固件...', statusType: 'info' })
+
+        wx.downloadFile({
+          url: url,
+          success: dRes => {
+            if (dRes.statusCode !== 200) {
+              console.error('[Firmware] HTTP 状态码异常:', dRes.statusCode)
+              this.setData({ downloading: false, status: '下载失败: HTTP ' + dRes.statusCode, statusType: 'error' })
+              return
+            }
+            console.log('[Firmware] 下载完成, tempFilePath:', dRes.tempFilePath)
+            const fs = wx.getFileSystemManager()
+            fs.readFile({
+              filePath: dRes.tempFilePath,
+              success: readRes => {
+                const buffer = readRes.data
+                const size = buffer.byteLength || buffer.length
+                console.log('[Firmware] 固件大小:', size, 'bytes')
+                this._otaData = new Uint8Array(buffer instanceof ArrayBuffer ? buffer : buffer.buffer)
+                this._otaFilename = filename
+                const sizeStr = size > 1048576 ? (size / 1048576).toFixed(2) + ' MB' : (size / 1024).toFixed(0) + ' KB'
+                this.setData({
+                  downloading: false,
+                  step3Done: true,
+                  otaSize: sizeStr,
+                  status: '拉取成功！请切换回设备 WiFi',
+                  statusType: 'success'
+                })
+              },
+              fail: err => {
+                console.error('[Firmware] 读取文件失败:', err)
+                this.setData({ downloading: false, status: '读取固件失败', statusType: 'error' })
+              }
             })
           },
           fail: err => {
-            console.error('[Firmware] 读取文件失败:', err)
-            this.setData({ downloading: false, status: '读取固件失败', statusType: 'error' })
+            console.error('[Firmware] 下载失败:', err)
+            this.setData({ downloading: false, status: '下载失败: ' + JSON.stringify(err), statusType: 'error' })
           }
         })
       },
       fail: err => {
-        console.error('[Firmware] 下载失败:', err)
-        this.setData({ downloading: false, status: '下载失败: ' + JSON.stringify(err), statusType: 'error' })
+        console.error('[Firmware] 云函数调用失败:', err)
+        this.setData({ downloading: false, status: '云函数调用失败，请检查网络', statusType: 'error' })
       }
     })
   },
