@@ -167,12 +167,12 @@ UDP未就绪: UDP_NOT_READY
 
 - 微信开发者工具
 - 开通微信云开发
-- ESP32设备(固件: `E:\AICleanBot\main\app_main.cpp`)
+- ESP32设备(固件: `main/app_main.cpp`)
 
 ### 2. 项目配置
 
 1. 导入项目到微信开发者工具
-2. AppID: `wxe43671e5bc6f25c1`
+2. AppID: 填你自己的（`project.config.json` 里的 `appid` 仓库中为占位符 `**`）
 3. 在开发者工具中开通云开发
 4. 创建数据库集合 `dataset`
 5. 设置集合权限为"所有用户可读写"

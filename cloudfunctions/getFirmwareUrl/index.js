@@ -2,7 +2,8 @@ const cloud = require('wx-server-sdk')
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 
 // 云存储文件路径前缀
-const CLOUD_PREFIX = 'cloud://cloud1-2g1p3hkle3a5feb1.636c-cloud1-2g1p3hkle3a5feb1-1412914450/firmware/'
+// 仓库中为占位符 **，请改成你自己的：cloud://<云环境ID>.<bucket>/firmware/
+const CLOUD_PREFIX = '**'
 
 exports.main = async (event, context) => {
   const { filename } = event

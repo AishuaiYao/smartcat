@@ -38,12 +38,12 @@ I (2650) wifi:mode : softAP (3c:0f:02:d7:57:01)
 I (2650) wifi:Total power save buffer number: 8
 I (2650) wifi:Init max length of beacon: 752/752
 I (2650) wifi:Init max length of beacon: 752/752
-I (2650) TEST_MODEL: [WiFi] AP已启动 SSID=ESP32-TEST 密码=12345678 IP=192.168.4.1
+I (2650) TEST_MODEL: [WiFi] AP已启动 SSID=ESP32-TEST 密码=** IP=192.168.4.1
 I (2660) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1
 I (2670) TEST_MODEL: ========================================
 I (2670) TEST_MODEL: [TCP] Server已启动, 端口=5000
 I (2680) TEST_MODEL: 系统启动完成!
-I (2690) TEST_MODEL: 热点: ESP32-TEST  密码: 12345678
+I (2690) TEST_MODEL: 热点: ESP32-TEST  密码: **
 I (2700) TEST_MODEL: TCP端口: 5000
 I (2700) TEST_MODEL: ========================================
 I (2710) main_task: Returned from app_main()

@@ -10,8 +10,10 @@ App({
     closeCallbacks: [],
     errorCallbacks: [],
     otaMessageCallback: null,
-    cloudEnv: 'cloud1-2g1p3hkle3a5feb1',
-    cloudEnvPrefix: 'cloud1-2g1p3hkle3a5feb1.636c-cloud1-2g1p3hkle3a5feb1-1412914450'
+    // 微信云开发环境 ID：仓库中为占位符 **，请改成你自己的（微信开发者工具 → 云开发 → 环境 → 环境 ID）
+    cloudEnv: '**',
+    // 云存储路径前缀，同样替换成你自己的环境 ID 与 bucket
+    cloudEnvPrefix: '**'
   },
 
   onLaunch() {
@@ -19,7 +21,7 @@ App({
     
     if (wx.cloud) {
       wx.cloud.init({
-        env: 'cloud1-2g1p3hkle3a5feb1',
+        env: '**',   // 改成你自己的云环境 ID
         traceUser: true
       })
       console.log('[SmartCat] 云开发初始化成功')
