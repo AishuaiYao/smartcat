@@ -1,5 +1,9 @@
 const app = getApp()
 
+// OTA 发送参数：每片 2KB，每个窗口 8 片(16KB) 等一次设备 ACK
+const OTA_CHUNK_SIZE = 2048
+const OTA_WINDOW_CHUNKS = 8
+
 Page({
   data: {
     firmwareList: [],
@@ -23,6 +27,7 @@ Page({
   },
 
   onUnload() {
+    this._clearOTATimeout()
     app.clearOTACallback()
   },
 
@@ -60,7 +65,8 @@ Page({
 
     wx.cloud.callFunction({
       name: 'getFirmwareUrl',
-      data: { fileID: fileID },
+      // filename 为云函数首选字段，fileID 兼容只读 fileID 的旧版云函数
+      data: { filename: filename, fileID: fileID },
       success: cfRes => {
         const { success, url } = cfRes.result
         if (!success || !url) {
@@ -135,22 +141,78 @@ Page({
 
     app.setOTACallback(this.onOTAMessage.bind(this))
     this._otaOffset = 0
+    this._otaAckTotal = 0
+    this._otaState = 'wait_ready'
 
+    this._armOTATimeout(10000, '设备未返回 OTA_READY')
     app.sendCommand('OTA:START:' + this._otaFilename + ':' + this._otaData.length)
+  },
+
+  // 超时守卫：任一阶段卡住都能退出，不会永久停在 flashing
+  _armOTATimeout(ms, reason) {
+    this._clearOTATimeout()
+    this._otaTimer = setTimeout(() => {
+      console.error('[Firmware] OTA 超时:', reason)
+      this._failOTA(reason)
+    }, ms)
+  },
+
+  _clearOTATimeout() {
+    if (this._otaTimer) {
+      clearTimeout(this._otaTimer)
+      this._otaTimer = null
+    }
+  },
+
+  _failOTA(reason) {
+    this._clearOTATimeout()
+    this._otaState = 'idle'
+    app.clearOTACallback()
+    this.setData({ flashing: false, status: '烧录失败: ' + reason + '，可重试', statusType: 'error' })
   },
 
   onOTAMessage(res) {
     const bytes = new Uint8Array(res.message)
-    const text = String.fromCharCode(...bytes).trim()
+    const text = String.fromCharCode.apply(null, bytes).trim()
     console.log('[Firmware] OTA 响应:', text)
 
-    if (text === 'OTA_READY') {
+    if (text.startsWith('OTA_PROGRESS:')) {
+      const pct = parseInt(text.split(':')[1], 10) || 0
+      const localPct = Math.floor(this._otaOffset * 100 / this._otaData.length)
+      // 设备侧进度为准，但不超过本地已发送量，避免进度条回退
+      this.setData({ progress: Math.min(pct, localPct) })
+      return
+    }
+
+    if (this._otaState === 'wait_ready' && text === 'OTA_READY') {
+      this._clearOTATimeout()
       this.setData({ status: '正在烧录固件...', statusType: 'info' })
-      this.sendNextChunk()
-    } else if (text.startsWith('OTA_PROGRESS:')) {
-      const pct = parseInt(text.split(':')[1])
-      this.setData({ progress: pct })
-    } else if (text === 'OTA_OK') {
+      this._sendWindow()
+      return
+    }
+
+    if (this._otaState === 'wait_ack' && text.startsWith('OTA_ACK:')) {
+      const ackTotal = parseInt(text.split(':')[1], 10)
+      if (isNaN(ackTotal)) return
+      this._otaAckTotal = ackTotal
+      if (ackTotal > this._otaOffset) {
+        this._failOTA('设备确认字节数异常')
+        return
+      }
+      this._clearOTATimeout()
+      this._sendWindow()
+      return
+    }
+
+    if (text === 'OTA_OK') {
+      // 设备收满且写入校验通过才会回 OTA_OK
+      if (this._otaOffset < this._otaData.length) {
+        this._failOTA('固件未发完却收到完成确认')
+        return
+      }
+      this._clearOTATimeout()
+      this._otaState = 'idle'
+      app.clearOTACallback()
       this.setData({
         flashing: false,
         progress: 100,
@@ -158,27 +220,35 @@ Page({
         status: '烧录成功！请重启机器人，并重新打开小程序',
         statusType: 'success'
       })
-      app.clearOTACallback()
-    } else if (text.startsWith('OTA_FAIL:')) {
-      const reason = text.substring(9)
-      this.setData({ flashing: false, status: '烧录失败: ' + reason, statusType: 'error' })
-      app.clearOTACallback()
+      return
+    }
+
+    if (text.startsWith('OTA_FAIL:')) {
+      this._failOTA(text.substring(9))
     }
   },
 
-  sendNextChunk() {
-    const chunkSize = 2048
-    if (this._otaOffset >= this._otaData.length) return
+  // 每发满一个窗口(16KB)就等设备 ACK，不再盲发
+  _sendWindow() {
+    const total = this._otaData.length
+    for (let i = 0; i < OTA_WINDOW_CHUNKS && this._otaOffset < total; i++) {
+      const end = Math.min(this._otaOffset + OTA_CHUNK_SIZE, total)
+      const chunk = this._otaData.slice(this._otaOffset, end)
+      const buf = new ArrayBuffer(chunk.length)
+      new Uint8Array(buf).set(chunk)
+      app.sendBinary(buf)
+      this._otaOffset = end
+    }
 
-    const end = Math.min(this._otaOffset + chunkSize, this._otaData.length)
-    const chunk = this._otaData.slice(this._otaOffset, end)
-    const buf = new ArrayBuffer(chunk.length)
-    new Uint8Array(buf).set(chunk)
-    app.sendBinary(buf)
-    this._otaOffset = end
+    this.setData({ progress: Math.floor(this._otaOffset * 100 / total) })
 
-    if (this._otaOffset < this._otaData.length) {
-      setTimeout(() => { this.sendNextChunk() }, 30)
+    if (this._otaOffset >= total) {
+      // 发完了，等设备完成写入 + 设置启动分区（Flash 写入较慢，超时放宽）
+      this._otaState = 'wait_done'
+      this._armOTATimeout(30000, '设备未返回烧录结果')
+    } else {
+      this._otaState = 'wait_ack'
+      this._armOTATimeout(10000, '设备未确认已接收数据')
     }
   },
 
