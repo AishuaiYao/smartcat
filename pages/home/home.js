@@ -1,3 +1,6 @@
+// 设备名/图标/MAC 由设备握手串返回，可能含 & # 空格等字符，必须编码后再拼进 URL
+const enc = s => encodeURIComponent(s || '')
+
 Page({
   data: {
     devices: [],
@@ -70,7 +73,7 @@ Page({
     })
 
     socket.onMessage(res => {
-      const info = String.fromCharCode(...new Uint8Array(res.message)).trim()
+      const info = String.fromCharCode.apply(null, new Uint8Array(res.message)).trim()
       console.log('[Home] <<< 收到设备响应: ' + info)
       const parts = info.split('|')
       const name = parts[0] || '未知设备'
@@ -160,13 +163,13 @@ Page({
     socket.onMessage(res => {
       if (!this.connecting) return
       clearTimeout(this.connectTimeout)
-      const info = String.fromCharCode(...new Uint8Array(res.message)).trim()
+      const info = String.fromCharCode.apply(null, new Uint8Array(res.message)).trim()
       console.log('[Home] 设备响应: ' + info)
       wx.hideLoading()
       socket.close()
       this.testSocket = null
       this.connecting = false
-      wx.navigateTo({ url: `/pages/device/device?name=${device.name}&icon=${device.icon}&mac=${device.mac}` })
+      wx.navigateTo({ url: `/pages/device/device?name=${enc(device.name)}&icon=${enc(device.icon)}&mac=${enc(device.mac)}` })
     })
 
     socket.onError((err) => {
@@ -196,14 +199,24 @@ Page({
   },
 
   onDebugTap() {
-    wx.navigateTo({ url: '/pages/device/device?name=模拟设备&icon=📦&mac=debug&debug=1' })
+    wx.navigateTo({ url: '/pages/device/device?name=' + enc('模拟设备') + '&icon=' + enc('📦') + '&mac=debug&debug=1' })
   },
 
   onDeleteDevice(e) {
     const id = e.currentTarget.dataset.id
-    const devices = this.data.devices.filter(d => d.id !== id)
-    this.setData({ devices, showDelete: false })
-    this.saveDevices()
+    const target = this.data.devices.find(d => d.id === id)
+    wx.showModal({
+      title: '移除设备',
+      content: `确定要移除「${(target && target.name) || '该设备'}」吗？`,
+      confirmColor: '#ff4d4f',
+      success: res => {
+        if (!res.confirm) return
+        const devices = this.data.devices.filter(d => d.id !== id)
+        this.setData({ devices, showDelete: false })
+        this.saveDevices()
+        wx.showToast({ title: '已移除', icon: 'none' })
+      }
+    })
   },
 
   catchTap() {},

@@ -24,6 +24,13 @@
         <text class="card-status">{{item.status}}</text>
       </view>
     </view>
+
+    <!-- 空状态 -->
+    <view class="empty" wx:if="{{devices.length === 0}}">
+      <text class="empty-icon">📭</text>
+      <text class="empty-title">还没有设备</text>
+      <text class="empty-sub">点击右上角 ➕ 搜索并添加</text>
+    </view>
   </scroll-view>
 
   <!-- 底部导航 -->

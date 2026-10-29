@@ -129,6 +129,31 @@
   margin-top: 6rpx;
 }
 
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 96rpx;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 30rpx;
+  color: #666;
+  margin-top: 20rpx;
+}
+
+.empty-sub {
+  font-size: 24rpx;
+  color: #aaa;
+  margin-top: 10rpx;
+}
+
 .bottom-bar {
   height: 100rpx;
   background: #fff;
